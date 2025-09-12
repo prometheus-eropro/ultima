@@ -7,13 +7,15 @@ export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
-  if (req.method === "OPTIONS") {
-    return res.status(200).end();
-  }
+  if (req.method === "OPTIONS") return res.status(200).end();
 
+  // --- Cadastro (POST) ---
   if (req.method === "POST") {
     try {
       const dados = req.body;
+
+      // QR Code automático
+      const qrURL = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(dados.idPublico)}`;
 
       const resp = await fetch(
         `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/clientes`,
@@ -32,8 +34,8 @@ export default async function handler(req, res) {
               celular: dados.celular,
               grupo: dados.grupo,
               cidade: dados.cidade,
-              ativo: dados.ativo === true || dados.ativo === "true",
-
+              ativo: false,   // 🚨 Sempre inicia como inativo
+              qrURL: qrURL
             },
           }),
         }
@@ -47,6 +49,7 @@ export default async function handler(req, res) {
     }
   }
 
+  // --- Consulta (GET) ---
   if (req.method === "GET") {
     const { idPublico } = req.query;
     try {
@@ -62,14 +65,15 @@ export default async function handler(req, res) {
 
       const clientes = (json.records || []).map((r) => ({
         id: r.id,
-        idPublico: r.fields.idPublico,
-        nome: r.fields.nome,
-        cpf: r.fields.cpf,
-        dataNascimento: r.fields.dataNascimento,
-        celular: r.fields.celular,
-        grupo: r.fields.grupo,
-        cidade: r.fields.cidade,
-        ativo: r.fields.ativo,
+        idPublico: r.fields.idPublico || "",
+        nome: r.fields.nome || "",
+        cpf: r.fields.cpf || "",
+        dataNascimento: r.fields.dataNascimento || "",
+        celular: r.fields.celular || "",
+        grupo: r.fields.grupo || "",
+        cidade: r.fields.cidade || "",
+        ativo: r.fields.ativo === true, // 🚨 Boolean direto
+        qrURL: r.fields.qrURL || ""
       }));
 
       return res.status(200).json(clientes);

@@ -185,15 +185,14 @@ const cliente = dados[0]; // agora a API já devolve um array de objetos simples
         return;
       }
 
-      const status = cliente.ativo?.toString().trim().toLowerCase();
+      const status = cliente.ativo; // já vem como true/false
 
-      if (status !== 'sim') {
-        carregando.style.display = "none";
-        alert('Erro ao acessar seu cadastro. Entre em contato pelo WhatsApp.');
-        window.open(`https://wa.me/5528999692303?text=Olá, meu ID é ${valor}, não estou conseguindo acessar meu cadastro.`, '_blank');
-        return;
-      }
-
+if (!status) {
+  carregando.style.display = "none";
+  alert('Erro ao acessar seu cadastro. Entre em contato pelo WhatsApp.');
+  window.open(`https://wa.me/5528999692303?text=Olá, meu ID é ${valor}, não estou conseguindo acessar meu cadastro.`, '_blank');
+  return;
+}
       window.location.href = `painelcliente.html?id=${encodeURIComponent(valor)}`;
     } catch (e) {
       erro.textContent = 'Erro ao conectar com o servidor.';
