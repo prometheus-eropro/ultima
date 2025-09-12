@@ -1,4 +1,3 @@
-// /api/clientes.js
 export default async function handler(req, res) {
   const { AIRTABLE_TOKEN, AIRTABLE_BASE_ID, ALLOWED_ORIGIN } = process.env;
   const allowedOrigin = ALLOWED_ORIGIN || "http://localhost:3000";
@@ -7,18 +6,25 @@ export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
-  if (req.method === "OPTIONS") return res.status(200).end();
+  if (req.method === "OPTIONS") {
+    return res.status(200).end();
+  }
+
+  const table = "clientes"; // nome da aba no Airtable (case sensitive)
 
   // --- Cadastro (POST) ---
   if (req.method === "POST") {
     try {
       const dados = req.body;
 
-      // QR Code automático
+      if (!dados || !dados.idPublico) {
+        return res.status(400).json({ error: "Dados incompletos" });
+      }
+
       const qrURL = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(dados.idPublico)}`;
 
-      const resp = await fetch(
-        `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/clientes`,
+      const response = await fetch(
+        `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${encodeURIComponent(table)}`,
         {
           method: "POST",
           headers: {
@@ -28,24 +34,30 @@ export default async function handler(req, res) {
           body: JSON.stringify({
             fields: {
               idPublico: dados.idPublico,
-              nome: dados.nome,
-              cpf: dados.cpf,
-              dataNascimento: dados.dataNascimento,
-              celular: dados.celular,
-              grupo: dados.grupo,
-              cidade: dados.cidade,
-              ativo: false,   // 🚨 Sempre inicia como inativo
+              nome: dados.nome || "",
+              cpf: dados.cpf || "",
+              dataNascimento: dados.dataNascimento || "",
+              celular: dados.celular || "",
+              grupo: dados.grupo || "",
+              cidade: dados.cidade || "",
+              ativo: false, // Sempre entra como inativo
               qrURL: qrURL
             },
           }),
         }
       );
 
-      const json = await resp.json();
-      return res.status(200).json(json);
-    } catch (e) {
-      console.error(e);
-      return res.status(500).json({ error: "Erro ao salvar no Airtable" });
+      const json = await response.json();
+
+      if (!response.ok) {
+        console.error("Erro Airtable:", json);
+        return res.status(500).json({ error: "Erro ao salvar no Airtable", detalhes: json });
+      }
+
+      return res.status(200).json({ sucesso: true, cliente: json });
+    } catch (error) {
+      console.error("Erro geral:", error);
+      return res.status(500).json({ error: "Erro interno no servidor" });
     }
   }
 
@@ -53,7 +65,7 @@ export default async function handler(req, res) {
   if (req.method === "GET") {
     const { idPublico } = req.query;
     try {
-      let url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/clientes`;
+      let url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${encodeURIComponent(table)}`;
       if (idPublico) {
         url += `?filterByFormula={idPublico}="${idPublico}"`;
       }
@@ -61,6 +73,7 @@ export default async function handler(req, res) {
       const resp = await fetch(url, {
         headers: { Authorization: `Bearer ${AIRTABLE_TOKEN}` },
       });
+
       const json = await resp.json();
 
       const clientes = (json.records || []).map((r) => ({
@@ -72,13 +85,13 @@ export default async function handler(req, res) {
         celular: r.fields.celular || "",
         grupo: r.fields.grupo || "",
         cidade: r.fields.cidade || "",
-        ativo: r.fields.ativo === true, // 🚨 Boolean direto
-        qrURL: r.fields.qrURL || ""
+        ativo: r.fields.ativo === true,
+        qrURL: r.fields.qrURL || "",
       }));
 
       return res.status(200).json(clientes);
     } catch (e) {
-      console.error(e);
+      console.error("Erro GET:", e);
       return res.status(500).json({ error: "Erro ao buscar no Airtable" });
     }
   }
