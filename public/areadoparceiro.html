@@ -7,21 +7,25 @@
   <style>
 
 #voltar-fixo {
-  position: fixed;
-  bottom: 20px;
-  left: 20px;
-  padding: 12px 24px;
-  font-size: 16px;
+  position: fixed;      /* fixa na tela */
+  bottom: 15px;         /* distância do rodapé */
+  left: 15px;           /* distância da lateral */
+  padding: 10px 20px;    /* tamanho compacto */
+  font-size: 13px;      /* texto menor */
   background-color: #0a7f2e;
-  color: white;
+  color: #fff;
   border: none;
-  border-radius: 8px;
+  border-radius: 6px;
   cursor: pointer;
-  box-shadow: 0 3px 8px rgba(0,0,0,0.3);
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
   z-index: 999;
+  width: auto !important;   /* força a largura mínima */
+  display: inline-block;    /* impede de ocupar linha toda */
 }
-
-
+#voltar-fixo {
+  width: auto !important;
+  display: inline-block;
+}
 
 body, html {
   min-height: 100vh;

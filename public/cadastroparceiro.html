@@ -103,18 +103,24 @@ body, html {
     }
 
 #voltar-fixo {
-  position: fixed;
-  bottom: 20px;
-  left: 20px;
-  padding: 12px 24px;
-  font-size: 16px;
+  position: fixed;      /* fixa na tela */
+  bottom: 15px;         /* distância do rodapé */
+  left: 15px;           /* distância da lateral */
+  padding: 10px 20px;    /* tamanho compacto */
+  font-size: 13px;      /* texto menor */
   background-color: #0a7f2e;
-  color: white;
+  color: #fff;
   border: none;
-  border-radius: 8px;
+  border-radius: 6px;
   cursor: pointer;
-  box-shadow: 0 3px 8px rgba(0,0,0,0.3);
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
   z-index: 999;
+  width: auto !important;   /* força a largura mínima */
+  display: inline-block;    /* impede de ocupar linha toda */
+}
+#voltar-fixo {
+  width: auto !important;
+  display: inline-block;
 }
   </style>
 </head>
@@ -172,7 +178,7 @@ body, html {
     <button onclick="aceitarCookies()">Aceitar</button>
   </div>
 
-<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"defer></script>
 <script>
 
   const table = 'parceiros';
@@ -268,15 +274,73 @@ Deseja liberar este parceiro?`;
       aviso.style.display = 'none';
     }
   });
-</script>
+await fetch('/api/novoCadastro', {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    tabela: "parceiros",  // <-- CORRETO!
+    cnpj: cnpj,
+    nome: nome,
+    cidade: cidade,
+    ramo: ramo,
+    whatsapp: whatsapp,
+    token: "tk" + cnpj.slice(-3),
+    ativo: true,
+    dataCadastro: new Date().toISOString().slice(0,10)
+  })
+});
 
+<!-- Adicione isso no final da <script> dentro do cadastroparceiro.html -->
+<script>
+  async function cadastrarParceiro() {
+    const nome = document.getElementById("nome").value;
+    const cnpj = document.getElementById("cnpj").value;
+    const cidade = document.getElementById("cidade").value;
+    const ramo = document.getElementById("ramo").value;
+    const whatsapp = document.getElementById("whatsapp").value;
+    const token = "tk" + cnpj.slice(-6); // exemplo automático de token baseado no cnpj
+
+    // Enviar para o Airtable (substitua URL e chave se necessário)
+    const data = {
+      fields: {
+        nome,
+        cnpj,
+        cidade,
+        ramo,
+        whatsapp,
+        token,
+        ativo: true,
+        dataCadastro: new Date().toISOString().split("T")[0],
+      }
+    };
+
+    try {
+      const resp = await fetch('/api/salvarparceiro', {
+        method: "POST",
+        headers: {
+          Authorization: "Bearer YOUR_API_KEY",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (response.ok) {
+        alert("Cadastro enviado com sucesso! Você será redirecionado para o WhatsApp.");
+
+        // Redirecionar para WhatsApp
+        const texto = `Novo Cadastro de Parceiro:%0A%0A\ud83e\uddfe *Nome:* ${nome}%0A\ud83d\udcc7 *CNPJ:* ${cnpj}%0A\ud83c\udfd9\ufe0f *Cidade:* ${cidade}%0A\ud83c\udfe2 *Ramo:* ${ramo}%0A\ud83d\udcf1 *WhatsApp:* ${whatsapp}`;
+        const url = `https://wa.me/5528999692303?text=${texto}`;
+        window.open(url, "_blank");
+      } else {
+        alert("Erro ao enviar para o Airtable.");
+      }
+    } catch (error) {
+      console.error("Erro ao cadastrar parceiro:", error);
+      alert("Erro inesperado.");
+    }
+  }
+</script>
 <button id="voltar-fixo" onclick="window.history.back()">⬅️ Voltar</button>
 
 </body>
 </html>
-
-
-
-
-
-
