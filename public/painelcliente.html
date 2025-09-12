@@ -225,11 +225,38 @@ function enviarWhatsapp() {
   window.open(`https://wa.me/5528999692303?text=${texto}`, "_blank");
 }
 
+  const id = new URLSearchParams(window.location.search).get("id");
 
+  fetch("https://ultima-neon.vercel.app/api/clientes")
+    .then(res => res.json())
+    .then(data => {
+      const clientes = data.records.map(record => record.fields);
+      const cliente = clientes.find(c => c.idPublico === id);
+
+      if (!cliente) {
+        alert("Cliente não encontrado.");
+        return;
+      }
+
+      document.getElementById("nome").textContent = cliente.nome || "";
+      document.getElementById("cidade").textContent = cliente.cidade || "";
+      document.getElementById("grupo").textContent = cliente.grupo || "";
+      document.getElementById("idpublico").textContent = cliente.idPublico || "";
+      document.getElementById("cpf").textContent = cliente.cpf || "";
+      document.getElementById("celular").textContent = cliente.celular || "";
+      document.getElementById("cadastro").textContent = cliente.dataCadastro || "";
+
+      // Exemplo opcional: esconder dados se não estiver ativo
+      if (!cliente.ativo) {
+        alert("Cadastro ainda não está ativo.");
+      }
+    })
+    .catch(err => {
+      console.error("Erro ao carregar os dados do cliente:", err);
+      alert("Erro ao buscar dados do cliente.");
+    });
 </script>
-
 <button id="voltar-fixo" onclick="window.history.back()">⬅️ Voltar</button>
-
 
 </body>
 </html>
