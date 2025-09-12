@@ -1,54 +1,33 @@
-// /api/parceiros.js
+// pages/api/parceiros.js
+
 export default async function handler(req, res) {
-  if (req.method !== "POST") {
+  if (req.method !== "GET") {
     return res.status(405).json({ error: "Método não permitido" });
   }
 
-  const { cnpj, nome, cidade, ramo, desconto, beneficios, token } = req.body;
+  const cnpj = (req.query.cnpj || "").trim();
+  const token = (req.query.token || "").trim();
 
-  if (!cnpj || !nome || !cidade || !ramo || !token) {
-    return res.status(400).json({ error: "Campos obrigatórios ausentes" });
+  if (!cnpj || !token) {
+    return res.status(400).json({ error: "CNPJ e token são obrigatórios" });
   }
-
-  const parceiro = {
-    records: [
-      {
-        fields: {
-          cnpj,
-          nome,
-          cidade,
-          ramo,
-          desconto: desconto || "",
-          beneficios: beneficios || "",
-          ativo: false,
-          token,
-          dataCadastro: new Date().toISOString().split("T")[0],
-        },
-      },
-    ],
-  };
 
   try {
-    const airtableRes = await fetch(
-      `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/${process.env.AIRTABLE_PARCEIROS}`,
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${process.env.AIRTABLE_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(parceiro),
-      }
-    );
+    const url = `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/${process.env.AIRTABLE_PARCEIROS}?filterByFormula=AND({cnpj}='${cnpj}', {token}='${token}')`;
 
-    if (!airtableRes.ok) {
-      const errorText = await airtableRes.text();
-      return res.status(500).json({ error: "Erro ao salvar no Airtable", detalhes: errorText });
+    const airtableRes = await fetch(encodeURI(url), {
+      headers: {
+        Authorization: `Bearer ${process.env.AIRTABLE_API_KEY}`,
+      },
+    });
+
+    const data = await airtableRes.json();
+
+    if (!data.records || data.records.length === 0) {
+      return res.status(404).json({ error: "Parceiro não encontrado ou token incorreto" });
     }
 
-    return res.status(200).json({ success: true });
+    return res.status(200).json(data.records[0].fields);
   } catch (err) {
-    console.error("Erro interno:", err);
-    return res.status(500).json({ error: "Erro interno no servidor" });
-  }
-}
+    console.error("Erro ao buscar parceiro:", err);
+    return

@@ -1,17 +1,17 @@
-// /api/clientes.js
+// pages/api/clientes.js
+
 export default async function handler(req, res) {
   if (req.method !== "GET") {
     return res.status(405).json({ error: "Método não permitido" });
   }
 
-  const id = req.query.id;
-
+  const id = (req.query.id || "").trim();
   if (!id) {
     return res.status(400).json({ error: "ID não fornecido" });
   }
 
   try {
-    const url = `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/${process.env.AIRTABLE_CLIENTES}?filterByFormula={idPublico}='${id}'`;
+    const url = `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/${process.env.AIRTABLE_CLIENTES}?filterByFormula=${encodeURIComponent(`{idPublico}='${id}'`)}`;
 
     const airtableRes = await fetch(url, {
       headers: {
