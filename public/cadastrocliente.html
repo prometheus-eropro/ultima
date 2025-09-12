@@ -127,40 +127,44 @@
   </div>
 
 <script>
-  function somenteDigitos(str){ return str.replace(/\D/g,""); }
-  function gerarIdPublico(){ return `APV-${Math.random().toString(36).substr(2,5).toUpperCase()}`; }
+  function somenteDigitos(str) {
+    return str.replace(/\D/g, "");
+  }
 
-  document.getElementById("formCliente").addEventListener("submit", async function(e) {
+  function gerarIdPublico() {
+    return `APV-${crypto.randomUUID().slice(0, 5).toUpperCase()}-${crypto.randomUUID().slice(0, 5).toUpperCase()}`;
+  }
+
+  document.getElementById("formCliente").addEventListener("submit", async function (e) {
     e.preventDefault();
     const form = e.target;
     const idPublico = gerarIdPublico();
     const cpf = somenteDigitos(form.cpf.value);
+    const celular = somenteDigitos(form.celular.value);
+
+    if (cpf.length !== 11) {
+      alert("CPF inválido. Deve conter 11 dígitos.");
+      return;
+    }
+
+    if (celular.length < 10) {
+      alert("Número de celular inválido.");
+      return;
+    }
+
     const dados = {
       nome: form.nome.value.trim(),
       cpf,
       dataNascimento: form.dataNascimento.value,
-      celular: somenteDigitos(form.celular.value),
+      celular,
       grupo: form.grupo.value.trim(),
       cidade: form.cidade.value.trim(),
-      ativo: "NÃO",
+      ativo: "nao", // Ativação direta
       idPublico
     };
-if (cpf.length !== 11) {
-  alert("CPF inválido. Deve conter 11 dígitos.");
-  return;
-}
-if (dados.celular.length < 10) {
-  alert("Número de celular inválido.");
-  return;
-}
 
     try {
-const resp = await fetch('https://airtable-api-jade.vercel.app/api/clientes', {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify(dados)
-});
-
+      const resp = await fetch('https://airtable-api-jade.vercel.app/api/clientes', {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(dados)
@@ -183,7 +187,8 @@ const resp = await fetch('https://airtable-api-jade.vercel.app/api/clientes', {
     }
   });
 </script>
-<button id="voltar-fixo" onclick="window.history.back()">⬅️ Voltar</button>
+<button id="voltar-fixo" style="padding: 8px 16px; font-size: 14px;" onclick="window.history.back()">⬅️ Voltar</button>
+
 
 </body>
 </html>
