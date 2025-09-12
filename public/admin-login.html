@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Login Admin • Cartão AproveitAI</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: Arial, sans-serif; background: #f3f4f6; display:flex; align-items:center; justify-content:center; height:100vh; }
+    .card { background:#fff; padding:30px; border-radius:10px; box-shadow:0 4px 15px rgba(0,0,0,0.1); width:100%; max-width:350px; text-align:center; }
+    h2 { margin-bottom:20px; color:#0a7f2e; }
+    input { width:100%; padding:10px; margin:10px 0; border:1px solid #ccc; border-radius:6px; }
+    button { width:100%; padding:12px; background:#0a7f2e; border:none; color:#fff; font-weight:bold; border-radius:6px; cursor:pointer; }
+    button:hover { background:#086225; }
+    .erro { color:red; margin-top:10px; display:none; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>Login Administrativo</h2>
+    <input type="password" id="senha" placeholder="Digite a senha" />
+    <button onclick="entrar()">Entrar</button>
+    <p id="erro" class="erro">Senha inválida</p>
+  </div>
+
+  <script>
+    function entrar() {
+      const senha = document.getElementById('senha').value.trim();
+      if (senha === "EROMASTER") {
+        window.location.href = "admin.html?token=" + senha;
+      } else {
+        document.getElementById('erro').style.display = "block";
+      }
+    }
+  </script>
+</body>
+</html>

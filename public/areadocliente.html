@@ -166,42 +166,79 @@ body, html {
       carregando.style.display = "none";
       return;
     }
+async function registrarErro(mensagem, idPublico) {
+  try {
+    await fetch("/api/log", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        origemConsulta: "areadocliente",
+        idPublico,
+        log_erros: mensagem,
+        dataHora: new Date().toISOString()
+      })
+    });
+  } catch (e) {
+    console.error("Falha ao registrar log:", e);
+  }
+}
 
     try {
-      const resposta = await fetch(`/api/clientes?idPublico=${encodeURIComponent(valor)}`);
+  const resposta = await fetch(`/api/clientes?idPublico=${encodeURIComponent(valor)}`);
 
-if (!resposta.ok) {
-  throw new Error("Falha na API");
-}
-const dados = await resposta.json();
-
-
-const cliente = dados[0]; // agora a API já devolve um array de objetos simples
-
-      if (!cliente) {
-        erro.textContent = 'ID não encontrado.';
-        erro.style.display = 'block';
-        carregando.style.display = "none";
-        return;
-      }
-
-      const status = cliente.ativo || cliente.Ativo;
-
-
-if (!status) {
-  carregando.style.display = "none";
-  alert('Erro ao acessar seu cadastro. Entre em contato pelo WhatsApp.');
-  window.open(`https://wa.me/5528999692303?text=Olá, meu ID é ${valor}, não estou conseguindo acessar meu cadastro.`, '_blank');
-  return;
-}
-      window.location.href = `painelcliente.html?id=${encodeURIComponent(valor)}`;
-    } catch (e) {
-      erro.textContent = 'Erro ao conectar com o servidor.';
-      erro.style.display = 'block';
-    } finally {
-      carregando.style.display = "none";
-    }
+  if (!resposta.ok) {
+    await registrarErro("Falha API clientes", valor);
+    throw new Error("Falha na API");
   }
+
+  const dados = await resposta.json();
+  const cliente = dados[0];
+
+  if (!cliente) {
+    erro.textContent = 'ID não encontrado.';
+    erro.style.display = 'block';
+    carregando.style.display = "none";
+
+    await registrarErro("ID não encontrado", valor);
+
+    window.open(
+      `https://wa.me/5528999692303?text=Olá, meu ID é ${valor}, não estou conseguindo acessar meu cadastro.`,
+      '_blank'
+    );
+    return;
+  }
+
+  const status = cliente.ativo || cliente.Ativo;
+
+  if (!status) {
+    carregando.style.display = "none";
+    alert('Cadastro ainda não liberado. Entre em contato pelo WhatsApp.');
+
+    await registrarErro("Cadastro inativo/bloqueado", valor);
+
+    window.open(
+      `https://wa.me/5528999692303?text=Olá, meu ID é ${valor}, não estou conseguindo acessar meu cadastro.`,
+      '_blank'
+    );
+    return;
+  }
+
+  // Se tudo OK → redireciona
+  window.location.href = `painelcliente.html?id=${encodeURIComponent(valor)}`;
+
+} catch (e) {
+  erro.textContent = 'Erro ao conectar com o servidor.';
+  erro.style.display = 'block';
+
+  await registrarErro("Erro de rede/API", valor);
+
+  window.open(
+    `https://wa.me/5528999692303?text=Olá, meu ID é ${valor}, ocorreu um erro de conexão ao acessar meu cadastro.`,
+    '_blank'
+  );
+} finally {
+  carregando.style.display = "none";
+}
 fetch('/api/gateway?tabela=clientes')
 
 async function buscarCliente() {
@@ -228,13 +265,6 @@ async function buscarCliente() {
 }
 
 </script>
-
 <button id="voltar-fixo" onclick="window.history.back()">⬅️ Voltar</button>
 </body>
 </html>
-
-
-
-
-
-
