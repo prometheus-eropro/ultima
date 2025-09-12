@@ -168,7 +168,8 @@ body, html {
     }
 
     try {
-      const resposta = await fetch(`https://airtable-api-jade.vercel.app/api/clientes?idPublico=${encodeURIComponent(valor)}`);
+      const resposta = await fetch(`/api/clientes?idPublico=${encodeURIComponent(valor)}`);
+
 if (!resposta.ok) {
   throw new Error("Falha na API");
 }
