@@ -168,8 +168,12 @@ body, html {
     }
 
     try {
-      const resposta = await fetch(`/api/consulta?tipo=clientes&id=${encodeURIComponent(valor)}`);
+      const resposta = await fetch(`https://airtable-api-jade.vercel.app/api/clientes?idPublico=${encodeURIComponent(valor)}`);
+if (!resposta.ok) {
+  throw new Error("Falha na API");
+}
 const dados = await resposta.json();
+
 
 const cliente = dados[0]; // agora a API já devolve um array de objetos simples
 
@@ -201,7 +205,6 @@ fetch('/api/gateway?tabela=clientes')
 
 
 </script>
-
 
 <button id="voltar-fixo" onclick="window.history.back()">⬅️ Voltar</button>
 </body>

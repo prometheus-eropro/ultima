@@ -5,6 +5,23 @@
   <title>Cadastro Cliente - Cartão AproveitAI</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <style>
+#voltar-fixo {
+  position: fixed;      /* fixa na tela */
+  bottom: 15px;         /* distância do rodapé */
+  left: 15px;           /* distância da lateral */
+  padding: 10px 20px;    /* tamanho compacto */
+  font-size: 13px;      /* texto menor */
+  background-color: #0a7f2e;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  z-index: 999;
+  width: auto !important;   /* força a largura mínima */
+  display: inline-block;    /* impede de ocupar linha toda */
+}
+
     body {
       font-family: Arial, sans-serif;
       background: linear-gradient(to bottom, #cceeff, #a3d8ff);
@@ -22,7 +39,7 @@
     }
 
     header img {
-      height: 80px;
+      height: 150px;
       margin: 0 20px;
     }
 
@@ -30,15 +47,15 @@
       background-color: #dfffe8;
       color: #007a33;
       display: inline-block;
-      padding: 10px 25px;
+      padding: 30px 55px;
       border-radius: 20px;
-      font-size: 1.5em;
+      font-size: 2.5em;
     }
 
     .box {
       background: white;
       padding: 30px;
-      border-radius: 15px;
+      border-radius: 25px;
       box-shadow: 0px 4px 8px rgba(0,0,0,0.2);
       margin: 20px 0;
       width: 90%;
@@ -83,21 +100,7 @@
       border-radius: 8px;
       font-weight: bold;
     }
-
-#voltar-fixo {
-  position: fixed;
-  bottom: 20px;
-  left: 20px;
-  padding: 12px 24px;
-  font-size: 16px;
-  background-color: #0a7f2e;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  box-shadow: 0 3px 8px rgba(0,0,0,0.3);
-  z-index: 999;
-}  </style>
+</style>
 </head>
 <body>
 
@@ -171,9 +174,18 @@
       });
 
       if (!resp.ok) {
-        alert("Erro ao cadastrar.");
-        return;
-      }
+  const texto = await resp.text();
+  console.error("Erro na API:", texto);
+  alert("Erro ao cadastrar. Verifique o console.");
+  return;
+}
+
+let resposta;
+try {
+  resposta = await resp.json();
+} catch (e) {
+  console.error("Resposta não é JSON válido:", e);
+}
 
       document.getElementById("formArea").style.display = "none";
       document.getElementById("sucessoArea").style.display = "block";
@@ -187,14 +199,7 @@
     }
   });
 </script>
-<button id="voltar-fixo" style="padding: 8px 16px; font-size: 14px;" onclick="window.history.back()">⬅️ Voltar</button>
-
+<button id="voltar-fixo" onclick="window.history.back()">⬅️ Voltar</button>
 
 </body>
 </html>
-
-
-
-
-
-
