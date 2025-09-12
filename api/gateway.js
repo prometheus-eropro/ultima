@@ -1,12 +1,15 @@
 // /api/gateway.js
 export default async function handler(req, res) {
   try {
-    // CORS
-    const origin = req.headers.origin;
-    const allowedOrigin = process.env.ALLOWED_ORIGIN || "http://localhost:3000";
-    if (origin !== allowedOrigin) {
-      return res.status(403).json({ error: "Origin not allowed" });
-    }
+const origin = req.headers.origin;
+const allowedOrigins = [
+  "http://localhost:3000",
+  "https://ultima-neon.vercel.app" // seu domínio na Vercel
+];
+
+if (!allowedOrigins.includes(origin)) {
+  return res.status(403).json({ error: "Origin not allowed" });
+}
 
     if (req.method !== "GET") {
       return res.status(405).json({ error: "Método não permitido" });
