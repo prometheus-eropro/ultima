@@ -32,7 +32,8 @@ export default async function handler(req, res) {
               celular: dados.celular,
               grupo: dados.grupo,
               cidade: dados.cidade,
-              ativo: dados.ativo,
+              ativo: dados.ativo === true || dados.ativo === "true",
+
             },
           }),
         }
