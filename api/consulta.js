@@ -1,41 +1,31 @@
-// api/consulta.js
-export default async function handler(req, res) {
-  let tipo, cnpj, token;
-if (req.method === 'GET') {
-  tipo = req.query.tipo;
-  cnpj = req.query.cnpj;
-  token = req.query.token;
-} else if (req.method === 'POST') {
-  ({ tipo, cnpj, token } = req.body || {});
-}
+// consulta.js
 
+const form = document.getElementById("form-consulta");
 
-  if (tipo === 'parceirosLogin') {
-    try {
-      const baseId = process.env.AIRTABLE_BASE_ID;
-      const tabela = process.env.AIRTABLE_PARCEIROS;
-      const apiKey = process.env.AIRTABLE_API_KEY;
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
 
-      const url = `https://api.airtable.com/v0/${baseId}/${tabela}?filterByFormula=AND({cnpj}='${cnpj}', {token}='${token}')`;
+  const id = document.getElementById("idpublico").value.trim();
 
-      const resposta = await fetch(url, {
-        headers: {
-          Authorization: `Bearer ${apiKey}`
-        }
-      });
-
-      const dados = await resposta.json();
-
-      if (dados.records && dados.records.length > 0) {
-        res.status(200).json({ status: 'ok', parceiro: dados.records[0].fields });
-      } else {
-        res.status(401).json({ status: 'erro', mensagem: 'Dados inválidos' });
-      }
-    } catch (erro) {
-      console.error('Erro interno:', erro);
-      res.status(500).json({ status: 'erro', mensagem: 'Erro interno do servidor' });
-    }
-  } else {
-    res.status(400).json({ status: 'erro', mensagem: 'Tipo inválido' });
+  if (!id) {
+    alert("Informe o ID público.");
+    return;
   }
-}
+
+  try {
+    const response = await fetch(`/api/clientes?id=${encodeURIComponent(id)}`);
+
+    if (response.ok) {
+      const data = await response.json();
+      localStorage.setItem("cliente", JSON.stringify(data));
+      window.location.href = "/painelcliente.html";
+    } else if (response.status === 404) {
+      alert("Cliente não encontrado.");
+    } else {
+      alert("Erro ao buscar dados do cliente.");
+    }
+  } catch (error) {
+    console.error("Erro na requisição:", error);
+    alert("Erro ao conectar com o servidor.");
+  }
+});
