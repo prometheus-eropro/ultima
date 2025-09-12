@@ -126,7 +126,7 @@ body, html {
 function sanitizeCNPJ(v){ return (v||"").replace(/\D/g,""); }
 
 async function buscarParceiro(cnpj, token) {
-  const resp = await fetch('/api/consulta?tipo=parceirosLogin', {
+  const resp = await fetch('/api/consulta?tipo=parceiroLogin', {
 
     method: 'POST',
     headers: { 'Content-Type':'application/json' },
