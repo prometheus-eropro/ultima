@@ -1,100 +1,111 @@
-export default async function handler(req, res) {
-  const { AIRTABLE_TOKEN, AIRTABLE_BASE_ID, ALLOWED_ORIGIN } = process.env;
-  const allowedOrigin = ALLOWED_ORIGIN || "http://localhost:3000";
+// CORRIGIDO: clientes.js (para cadastro e validação correta do cliente e parceiro)
 
-  res.setHeader("Access-Control-Allow-Origin", allowedOrigin);
-  res.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+const apiBase = "https://api.airtable.com/v0/appMQwMQMQz7dLlSZ";
+const apiKey = "Bearer keyGQGo7eS3nk5dNm";
 
-  if (req.method === "OPTIONS") {
-    return res.status(200).end();
+async function salvarCliente(dados) {
+  const idPublico = gerarIDPublico();
+  const qrURL = `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(idPublico)}&size=150x150`;
+
+  const clienteData = {
+    records: [
+      {
+        fields: {
+          idPublico: idPublico,
+          nome: dados.nome,
+          cpf: dados.cpf,
+          celular: dados.celular,
+          grupo: dados.grupo,
+          cidade: dados.cidade,
+          dataNascimento: dados.dataNascimento,
+          dataCadastro: new Date().toLocaleDateString("en-US"),
+          ativo: false,
+          qrURL: qrURL
+        },
+      },
+    ],
+  };
+
+  const response = await fetch(`${apiBase}/clientes`, {
+    method: "POST",
+    headers: {
+      Authorization: apiKey,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(clienteData),
+  });
+
+  if (response.ok) {
+    const whatsappMsg = `https://api.whatsapp.com/send?phone=5528996692303&text=Novo cliente cadastrado: ${idPublico}`;
+    window.location.href = whatsappMsg;
+  } else {
+    alert("Erro ao salvar cadastro.");
   }
+}
 
-  const table = "clientes"; // nome da aba no Airtable (case sensitive)
+async function salvarParceiro(dados) {
+  const parceiroData = {
+    records: [
+      {
+        fields: {
+          cnpj: dados.cnpj,
+          nome: dados.nome,
+          cidade: dados.cidade,
+          ramo: dados.ramo,
+          desconto: dados.desconto,
+          beneficios: dados.beneficios,
+          ativo: false,
+          token: dados.token
+        },
+      },
+    ],
+  };
 
-  // --- Cadastro (POST) ---
-  if (req.method === "POST") {
-    try {
-      const dados = req.body;
+  const response = await fetch(`${apiBase}/parceiros`, {
+    method: "POST",
+    headers: {
+      Authorization: apiKey,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(parceiroData),
+  });
 
-      if (!dados || !dados.idPublico) {
-        return res.status(400).json({ error: "Dados incompletos" });
-      }
-
-      const qrURL = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(dados.idPublico)}`;
-
-      const response = await fetch(
-        `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${encodeURIComponent(table)}`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${AIRTABLE_TOKEN}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            fields: {
-              idPublico: dados.idPublico,
-              nome: dados.nome || "",
-              cpf: dados.cpf || "",
-              dataNascimento: dados.dataNascimento || "",
-              celular: dados.celular || "",
-              grupo: dados.grupo || "",
-              cidade: dados.cidade || "",
-              ativo: false, // Sempre entra como inativo
-              qrURL: qrURL
-            },
-          }),
-        }
-      );
-
-      const json = await response.json();
-
-      if (!response.ok) {
-        console.error("Erro Airtable:", json);
-        return res.status(500).json({ error: "Erro ao salvar no Airtable", detalhes: json });
-      }
-
-      return res.status(200).json({ sucesso: true, cliente: json });
-    } catch (error) {
-      console.error("Erro geral:", error);
-      return res.status(500).json({ error: "Erro interno no servidor" });
-    }
+  if (response.ok) {
+    const whatsappMsg = `https://api.whatsapp.com/send?phone=5528996692303&text=Novo parceiro cadastrado: ${dados.nome}`;
+    window.location.href = whatsappMsg;
+  } else {
+    alert("Erro ao salvar cadastro do parceiro.");
   }
+}
 
-  // --- Consulta (GET) ---
-  if (req.method === "GET") {
-    const { idPublico } = req.query;
-    try {
-      let url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${encodeURIComponent(table)}`;
-      if (idPublico) {
-        url += `?filterByFormula={idPublico}="${idPublico}"`;
-      }
+function gerarIDPublico() {
+  const prefix = "APV";
+  const random = Math.random().toString(36).substring(2, 10).toUpperCase();
+  return `${prefix}-${random.slice(0, 5)}-${random.slice(5)}`;
+}
 
-      const resp = await fetch(url, {
-        headers: { Authorization: `Bearer ${AIRTABLE_TOKEN}` },
-      });
+// CORRIGIDO: Validação da área do cliente
+async function buscarClientePorID(idPublico) {
+  const url = `${apiBase}/clientes?filterByFormula={idPublico}='${idPublico}'`;
+  const response = await fetch(url, {
+    headers: {
+      Authorization: apiKey,
+    },
+  });
+  if (!response.ok) throw new Error("Erro na busca do cliente");
 
-      const json = await resp.json();
+  const data = await response.json();
+  return data.records.length > 0 ? data.records[0].fields : null;
+}
 
-      const clientes = (json.records || []).map((r) => ({
-        id: r.id,
-        idPublico: r.fields.idPublico || "",
-        nome: r.fields.nome || "",
-        cpf: r.fields.cpf || "",
-        dataNascimento: r.fields.dataNascimento || "",
-        celular: r.fields.celular || "",
-        grupo: r.fields.grupo || "",
-        cidade: r.fields.cidade || "",
-        ativo: r.fields.ativo === true,
-        qrURL: r.fields.qrURL || "",
-      }));
-
-      return res.status(200).json(clientes);
-    } catch (e) {
-      console.error("Erro GET:", e);
-      return res.status(500).json({ error: "Erro ao buscar no Airtable" });
-    }
-  }
-
-  return res.status(405).json({ error: "Método não permitido" });
+// Validação da área do parceiro
+async function validarLoginParceiro(cnpj, token) {
+  const url = `${apiBase}/parceiros?filterByFormula=AND({cnpj}='${cnpj}', {token}='${token}', {ativo}=1)`;
+  const response = await fetch(url, {
+    headers: {
+      Authorization: apiKey,
+    },
+  });
+  const data = await response.json();
+  return data.records.length > 0;
 }
