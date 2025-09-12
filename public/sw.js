@@ -43,3 +43,4 @@ self.addEventListener('fetch', e => {
     )
   );
 });
+'/promocoes.html','/criarpromocao.html',

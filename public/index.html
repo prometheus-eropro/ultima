@@ -209,7 +209,10 @@ async function fetchJSON(url) {
         </div>
       </article>`;
     }
-
+function aplicarFiltro() {
+const nomeOuEmail = document.getElementById("inputNome").value.toLowerCase();
+const cidadeSelecionada = document.getElementById("cidadeSelect").value;
+const ramoSelecionado = document.getElementById("ramoSelect").value;
 async function carregarClientes() {
   const data = await fetchJSON('/api/gateway?tabela=clientes&pageSize=50');
 }
@@ -237,6 +240,30 @@ async function carregarClientes() {
     nextOffset: data.offset
   };
 }
+fetchParceiros().then((records) => {
+const filtrados = records.filter((p) => {
+const f = p.fields || {};
+const cnpj = (f.cnpj || '').trim();
+const nome = (f.nomeFantasia || '').toLowerCase();
+const cidade = f.cidade;
+const ramo = f.ramo;
+
+
+return (
+(!nomeOuEmail || nome.includes(nomeOuEmail) || cnpj.includes(nomeOuEmail)) &&
+(cidadeSelecionada === "" || cidade === cidadeSelecionada) &&
+(ramoSelecionado === "" || ramo === ramoSelecionado)
+);
+});
+const container = document.getElementById("grid");
+container.innerHTML = filtrados.map(cardHtml).join("");
+});
+}
+
+
+document.getElementById("btnFiltrar").addEventListener("click", aplicarFiltro);
+
+
     async function listar(reset) {
       try {
         if (reset) {
@@ -356,6 +383,15 @@ async function buscarBeneficios() {
   buscarFAQ();
   buscarPromocoes();
   buscarDepoimentos();
+document.querySelector("#btnQueroCliente").addEventListener("click", () => {
+window.location.href = "cadastrocliente.html";
+});
+
+
+document.querySelector("#btnQueroParceiro").addEventListener("click", () => {
+window.location.href = "cadastroparceiro.html";
+});
+
 </script>
 
 </body>

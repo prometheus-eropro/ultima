@@ -199,7 +199,13 @@ const cliente = dados[0]; // agora a API já devolve um array de objetos simples
   }
 fetch('/api/gateway?tabela=clientes')
 
-
+const voltarBtn = document.querySelector("#btnVoltar");
+if (voltarBtn) {
+voltarBtn.style.position = "fixed";
+voltarBtn.style.bottom = "20px";
+voltarBtn.style.left = "20px";
+voltarBtn.style.zIndex = "999";
+}
 </script>
 
 
