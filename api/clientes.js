@@ -1,33 +1,51 @@
-// pages/api/clientes.js
-
+// /api/clientes.js
 export default async function handler(req, res) {
-  if (req.method !== "GET") {
-    return res.status(405).json({ error: "Método não permitido" });
-  }
-
-  const id = (req.query.id || "").trim();
-  if (!id) {
-    return res.status(400).json({ error: "ID não fornecido" });
-  }
-
   try {
-    const url = `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/${process.env.AIRTABLE_CLIENTES}?filterByFormula=${encodeURIComponent(`{idPublico}='${id}'`)}`;
-
-    const airtableRes = await fetch(url, {
-      headers: {
-        Authorization: `Bearer ${process.env.AIRTABLE_API_KEY}`,
-      },
-    });
-
-    const data = await airtableRes.json();
-
-    if (!data.records || data.records.length === 0) {
-      return res.status(404).json({ error: "Cliente não encontrado" });
+    // CORS
+    const origin = req.headers.origin;
+    const allowedOrigin = process.env.ALLOWED_ORIGIN || "http://localhost:3000";
+    if (origin !== allowedOrigin) {
+      return res.status(403).json({ error: "Origin not allowed" });
     }
 
-    return res.status(200).json(data.records[0].fields);
+    if (req.method !== "GET") {
+      return res.status(405).json({ error: "Método não permitido" });
+    }
+
+    // Normalizar parâmetro
+    const { idPublico } = req.query;
+    if (!idPublico || typeof idPublico !== "string" || idPublico.length > 40) {
+      return res.status(400).json({ error: "Parâmetro idPublico inválido" });
+    }
+
+    // Airtable fetch
+    const baseId = process.env.AIRTABLE_BASE_ID;
+    const token = process.env.AIRTABLE_TOKEN;
+    const url = `https://api.airtable.com/v0/${baseId}/Clientes?filterByFormula=${encodeURIComponent(`{ID Publico} = '${idPublico}'`)}`;
+
+    const response = await fetch(url, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Airtable error: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    // Mapear para formato limpo
+    const clientes = data.records.map(r => ({
+      id: r.id,
+      nome: r.fields["Nome"] || "",
+      cidade: r.fields["Cidade"] || "",
+      ramo: r.fields["Ramo"] || "",
+      desconto: r.fields["Desconto"] || "",
+      ativo: r.fields["Ativo"] || false,
+    }));
+
+    return res.status(200).json({ clientes });
   } catch (err) {
-    console.error("Erro ao buscar cliente:", err);
-    return res.status(500).json({ error: "Erro interno" });
+    console.error("Erro API clientes:", err);
+    return res.status(500).json({ error: "Erro interno no servidor" });
   }
 }

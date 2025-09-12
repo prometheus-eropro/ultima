@@ -203,6 +203,28 @@ if (!status) {
   }
 fetch('/api/gateway?tabela=clientes')
 
+async function buscarCliente() {
+  const id = document.getElementById("idPublico").value.trim();
+  if (!id) return alert("Digite seu ID Público");
+
+  try {
+    const resp = await fetch(`/api/clientes?idPublico=${encodeURIComponent(id)}`);
+    if (!resp.ok) throw new Error("Falha na API");
+    
+    const data = await resp.json();
+    if (!data.clientes || data.clientes.length === 0) {
+      document.getElementById("resultado").innerText = "Nenhum cliente encontrado.";
+      return;
+    }
+
+    // renderizar cliente
+    console.log(data.clientes);
+    document.getElementById("resultado").innerText = JSON.stringify(data.clientes, null, 2);
+  } catch (err) {
+    console.error(err);
+    document.getElementById("resultado").innerText = "Erro ao conectar com o servidor.";
+  }
+}
 
 </script>
 
