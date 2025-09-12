@@ -278,26 +278,6 @@ async function carregarClientes() {
     }
 
     listar(true);
-
-<!-- index.html (trecho relevante, substituir JS) -->
-
-     buscarBeneficios();
-  async function buscarPromocoes() {
-    const res = await fetch('/api/gateway?tabela=promocoes');
-    const dados = await res.json();
-    console.log('PROMOÇÕES:', dados);
-  }
-
-  buscarPromocoes();
-  async function buscarDepoimentos() {
-    const res = await fetch('/api/gateway?tabela=depoimentos');
-    const dados = await res.json();
-    console.log('DEPOIMENTOS:', dados);
-  }
-
-  buscarDepoimentos();
-
-
 async function carregarParceiros() {
   try {
     const data = await fetchJSON('/api/gateway?tabela=parceiros&pageSize=50');
@@ -351,11 +331,15 @@ document.addEventListener("DOMContentLoaded", carregarParceiros);
     } catch (e) { console.error(e); }
   }
 
-  async function buscarBeneficios() {
-    const res = await fetch('/api/gateway?tabela=beneficios');
-    const dados = await res.json();
-    console.log('BENEFICIOS:', dados);
+async function buscarBeneficios() {
+  try {
+    const data = await fetchJSON('/api/gateway?tabela=beneficios');
+    console.log('BENEFICIOS:', data);
+  } catch (e) {
+    console.error('Erro ao buscar benefícios:', e.message);
   }
+}
+
 
   async function buscarPromocoes() {
     const res = await fetch('/api/gateway?tabela=promocoes');
@@ -370,7 +354,6 @@ document.addEventListener("DOMContentLoaded", carregarParceiros);
   }
 
   buscarFAQ();
-  buscarBeneficios();
   buscarPromocoes();
   buscarDepoimentos();
 </script>

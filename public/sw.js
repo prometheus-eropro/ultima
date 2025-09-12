@@ -5,11 +5,21 @@ const ASSETS = [
   '/promocoes.html','/criarpromocao.html',
   '/logo-aproveitai.png','/logo-prometheus.png',
   '/favicon.ico','/manifest.json',
-  '/criarpromocao.js','/consultas.js'
 ];
 
 self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
+  e.waitUntil(
+    (async () => {
+      const cache = await caches.open(CACHE);
+      for (const asset of ASSETS) {
+        try {
+          await cache.add(asset);
+        } catch (err) {
+          console.warn(`Falha ao armazenar: ${asset}`, err);
+        }
+      }
+    })()
+  );
   self.skipWaiting();
 });
 
