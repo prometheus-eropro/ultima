@@ -34,14 +34,15 @@ export default async function handler(req, res) {
     const data = await response.json();
 
     // Mapear para formato limpo
-    const clientes = data.records.map(r => ({
-      id: r.id,
-      nome: r.fields["Nome"] || "",
-      cidade: r.fields["Cidade"] || "",
-      ramo: r.fields["Ramo"] || "",
-      desconto: r.fields["Desconto"] || "",
-      ativo: r.fields["Ativo"] || false,
-    }));
+const clientes = data.records.map(r => ({
+  id: r.id,
+idPublico: r.fields["idPublico"] || "",
+  nome: r.fields["nome"] || "",
+  cidade: r.fields["cidade"] || "",
+  ramo: r.fields["ramo"] || "",
+  desconto: r.fields["desconto"] || "",
+  ativo: !!r.fields["ativo"] || !!r.fields["Ativo"], // aceita os dois jeitos
+}));
 
     return res.status(200).json({ clientes });
   } catch (err) {

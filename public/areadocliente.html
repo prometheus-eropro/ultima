@@ -185,7 +185,8 @@ const cliente = dados[0]; // agora a API já devolve um array de objetos simples
         return;
       }
 
-      const status = cliente.ativo; // já vem como true/false
+      const status = cliente.ativo || cliente.Ativo;
+
 
 if (!status) {
   carregando.style.display = "none";
