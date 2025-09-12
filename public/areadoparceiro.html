@@ -203,39 +203,18 @@ async function validarLoginParceiro(event) {
     alert('Erro na conexão. Tente novamente.');
   }
 }
-const voltarBtn = document.querySelector("#btnVoltar");
-if (voltarBtn) {
-voltarBtn.style.position = "fixed";
-voltarBtn.style.bottom = "20px";
-voltarBtn.style.left = "20px";
-voltarBtn.style.zIndex = "999";
-}
-const btnLoginParceiro = document.querySelector("#btnLoginParceiro");
-if (btnLoginParceiro) {
-btnLoginParceiro.addEventListener("click", async () => {
-const cnpj = document.getElementById("inputCnpj").value.trim();
-const token = document.getElementById("inputToken").value.trim();
-const url = `/api/consulta?tipo=parceirosLogin`;
+</script>
 
-
-const res = await fetch(url, {
-method: "POST",
-headers: { "Content-Type": "application/json" },
-body: JSON.stringify({ cnpj, token })
-});
-
-
-if (res.status === 401) {
-alert("CNPJ ou Token inválidos.");
-} else {
-const json = await res.json();
-console.log("Login parceiro OK:", json);
-// redirecionar ou carregar painel parceiro
-}
-});
-}
 </script>
 <button id="voltar-fixo" onclick="window.history.back()">⬅️ Voltar</button>
 
+
+
 </body>
 </html>
+
+
+
+
+
+

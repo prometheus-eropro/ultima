@@ -209,10 +209,7 @@ async function fetchJSON(url) {
         </div>
       </article>`;
     }
-function aplicarFiltro() {
-const nomeOuEmail = document.getElementById("inputNome").value.toLowerCase();
-const cidadeSelecionada = document.getElementById("cidadeSelect").value;
-const ramoSelecionado = document.getElementById("ramoSelect").value;
+
 async function carregarClientes() {
   const data = await fetchJSON('/api/gateway?tabela=clientes&pageSize=50');
 }
@@ -229,7 +226,7 @@ async function carregarClientes() {
   const data = await fetchJSON(fullUrl);
   return {
     items: (data.records || []).map(p => ({
-      nome: p.fields.nomeFantasia,
+      nome: p.fields.nome,
       cidade: p.fields.cidade,
       ramo: p.fields.ramo,
       logoUrl: p.fields.logoURL,
@@ -240,30 +237,6 @@ async function carregarClientes() {
     nextOffset: data.offset
   };
 }
-fetchParceiros().then((records) => {
-const filtrados = records.filter((p) => {
-const f = p.fields || {};
-const cnpj = (f.cnpj || '').trim();
-const nome = (f.nomeFantasia || '').toLowerCase();
-const cidade = f.cidade;
-const ramo = f.ramo;
-
-
-return (
-(!nomeOuEmail || nome.includes(nomeOuEmail) || cnpj.includes(nomeOuEmail)) &&
-(cidadeSelecionada === "" || cidade === cidadeSelecionada) &&
-(ramoSelecionado === "" || ramo === ramoSelecionado)
-);
-});
-const container = document.getElementById("grid");
-container.innerHTML = filtrados.map(cardHtml).join("");
-});
-}
-
-
-document.getElementById("btnFiltrar").addEventListener("click", aplicarFiltro);
-
-
     async function listar(reset) {
       try {
         if (reset) {
@@ -305,44 +278,6 @@ document.getElementById("btnFiltrar").addEventListener("click", aplicarFiltro);
     }
 
     listar(true);
-async function carregarParceiros() {
-  try {
-    const data = await fetchJSON('/api/gateway?tabela=parceiros&pageSize=50');
-    let records = data.records || [];
-
-    // eliminar duplicatas (baseado no CNPJ)
-    const parceirosUnicos = [];
-    const cnpjsVistos = new Set();
-    records.forEach(parceiro => {
-      const cnpj = parceiro.fields?.cnpj?.trim();
-      if (cnpj && !cnpjsVistos.has(cnpj)) {
-        parceirosUnicos.push(parceiro);
-        cnpjsVistos.add(cnpj);
-      }
-    });
-
-    const container = document.getElementById("lista-parceiros");
-    if (!container) return;
-
-    container.innerHTML = parceirosUnicos.map(p => {
-      const f = p.fields;
-      const logo = f.logoURL || "logo-aproveitai.png"; // fallback padrão
-      return `
-        <div class="parceiro-card" style="border:1px solid #ccc;padding:10px;border-radius:8px;text-align:center;width:180px">
-          <img src="${logo}" alt="${f.nomeFantasia}" style="max-width:100px;margin-bottom:6px"/>
-          <strong>${f.nomeFantasia || 'Sem nome'}</strong><br/>
-          <small>${f.cidade || ''} • ${f.ramo || ''}</small>
-        </div>
-      `;
-    }).join("");
-  } catch (e) {
-    console.error("Erro ao carregar parceiros:", e.message);
-    const c = document.getElementById("lista-parceiros");
-    if (c) c.innerHTML = `<p style="color:red">Erro ao carregar parceiros.</p>`;
-  }
-}
-
-document.addEventListener("DOMContentLoaded", carregarParceiros);
 </script>
 <script>
   // Service Worker
@@ -383,15 +318,6 @@ async function buscarBeneficios() {
   buscarFAQ();
   buscarPromocoes();
   buscarDepoimentos();
-document.querySelector("#btnQueroCliente").addEventListener("click", () => {
-window.location.href = "cadastrocliente.html";
-});
-
-
-document.querySelector("#btnQueroParceiro").addEventListener("click", () => {
-window.location.href = "cadastroparceiro.html";
-});
-
 </script>
 
 </body>

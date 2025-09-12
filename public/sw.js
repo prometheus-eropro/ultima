@@ -5,6 +5,7 @@ const ASSETS = [
   '/promocoes.html','/criarpromocao.html',
   '/logo-aproveitai.png','/logo-prometheus.png',
   '/favicon.ico','/manifest.json',
+  '/criarpromocao.js','/consultas.js'
 ];
 
 self.addEventListener('install', e => {
@@ -43,4 +44,3 @@ self.addEventListener('fetch', e => {
     )
   );
 });
-'/promocoes.html','/criarpromocao.html',

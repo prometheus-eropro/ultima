@@ -302,6 +302,8 @@ const parceiros = await response.json();
 const params = new URLSearchParams(location.search);
 const id = params.get("id"); // Ex: PARC-12345
 
+const response = await fetch("/api/consulta?tipo=parceiros");
+const parceiros = await response.json();
 
 const parceiro = parceiros.find(p => p.idPublico?.toUpperCase() === id?.toUpperCase());
 <script>
