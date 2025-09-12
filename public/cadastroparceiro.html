@@ -180,166 +180,86 @@ body, html {
 
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"defer></script>
 <script>
+document.getElementById('form-parceiro').addEventListener('submit', async function (e) {
+  e.preventDefault();
+  const form = e.target;
 
-  const table = 'parceiros';
+  const nome = form['nome'].value;
+  const cnpj = form['cnpj'].value;
+  const cidade = form['cidade'].value;
+  const ramo = form['ramo'].value;
+  const whatsapp = form['contato'].value;
+  const instagram = form['instagram'].value;
+  const site = form['site'].value;
+  const email = form['email'].value;
+  const beneficio = form['beneficio'].value;
+  const token = "tk" + cnpj.slice(-6); // gera token baseado no cnpj
 
-  document.getElementById('form-parceiro').addEventListener('submit', async function (e) {
-    e.preventDefault();
-    const form = e.target;
-
-    let site = form.site.value.trim();
-    if (site && !site.startsWith("http://") && !site.startsWith("https://")) {
-      site = "https://" + site;
-    }
-
-    const data = {
-      nomeFantasia: form['nome'].value,
-      cnpj: form['cnpj'].value,
-      cidade: form['cidade'].value,
-      ramo: form['ramo'].value,
-      beneficios: form['beneficio'].value,
-      whatsapp: form['contato'].value,
-      instagram: form['instagram'].value,
-      site: site,
-      email: form['email'].value,
-      ativo: "NAO",
-      dataCadastro: new Date().toISOString().split("T")[0]
-    };
-const cnpjLimpo = data.cnpj.replace(/\D/g, '');
-if (cnpjLimpo.length !== 14) {
-  alert("CNPJ inválido.");
-  return;
-}
-
-if (data.whatsapp.length < 8) {
-  alert("Número de contato inválido.");
-  return;
-}
-
-    try {
-const resp = await fetch('https://airtable-api-jade.vercel.app/api/parceiros', {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify(data)
-});
-
-if (!resp.ok) {
-  alert("Erro ao cadastrar parceiro.");
-  return;
-}
-
-
-
-// Após confirmação do cadastro
-      const nome = form['nome'].value;
-      const cnpj = form['cnpj'].value;
-      const numeroParceiro = "55" + form['contato'].value.replace(/\D/g, '');
-      const zapAdmin = "5528999692303";
-
-      // Mensagem para o parceiro
-      const msgParceiro = `Olá ${nome}, seu cadastro foi recebido com sucesso e será avaliado em breve.`;
-
-      // Mensagem para o admin
-      const msgAdmin = `Novo cadastro de parceiro:
-
-Nome: ${nome}
-CNPJ: ${cnpj}
-
-Deseja liberar este parceiro?`;
-
-      // Envia zap para o admin
-      window.open(`https://wa.me/${zapAdmin}?text=${encodeURIComponent(msgAdmin)}`, '_blank');
-
-      // Redireciona para o zap do parceiro
-      alert("Cadastro enviado com sucesso! Você será redirecionado para o WhatsApp.");
-      const linkZap = `https://wa.me/${numeroParceiro}?text=${encodeURIComponent(msgParceiro)}`;
-      window.location.href = linkZap;
-
-      form.reset();
-    } catch (error) {
-      console.error("Erro detalhado:", error.response?.data || error);
-      alert('Erro ao enviar dados. Verifique a conexão ou os dados preenchidos.');
-    }
-  });
-
-  function aceitarCookies() {
-    const aviso = document.getElementById('cookie-banner');
-    if (aviso) aviso.style.display = 'none';
-    document.cookie = "cookiesAceitos=true; max-age=31536000; path=/";
+  if (!cnpj || !nome || !whatsapp) {
+    alert("Preencha os campos obrigatórios.");
+    return;
   }
 
-  window.addEventListener('load', () => {
-    const aviso = document.getElementById('cookie-banner');
-    if (document.cookie.includes('cookiesAceitos=true') && aviso) {
-      aviso.style.display = 'none';
+  const parceiro = {
+    nome,
+    cnpj,
+    cidade,
+    ramo,
+    whatsapp,
+    instagram,
+    site,
+    email,
+    beneficio,
+    token,
+    ativo: false,
+    dataCadastro: new Date().toISOString().split("T")[0],
+  };
+
+  try {
+    const resp = await fetch('/api/salvarparceiro', {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(parceiro)
+    });
+
+    const json = await resp.json();
+
+    if (!resp.ok) {
+      console.error("Erro ao salvar:", json);
+      alert("Erro ao salvar cadastro.");
+      return;
     }
-  });
-await fetch('/api/novoCadastro', {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({
-    tabela: "parceiros",  // <-- CORRETO!
-    cnpj: cnpj,
-    nome: nome,
-    cidade: cidade,
-    ramo: ramo,
-    whatsapp: whatsapp,
-    token: "tk" + cnpj.slice(-3),
-    ativo: true,
-    dataCadastro: new Date().toISOString().slice(0,10)
-  })
+
+    // Envia zap para admin
+    const zapAdmin = "5528999692303";
+    const msgAdmin = `Novo parceiro cadastrado:\n\nNome: ${nome}\nCNPJ: ${cnpj}\nCidade: ${cidade}\nRamo: ${ramo}`;
+    window.open(`https://wa.me/${zapAdmin}?text=${encodeURIComponent(msgAdmin)}`, "_blank");
+
+    // Zap para o próprio parceiro
+    const numeroParceiro = "55" + whatsapp.replace(/\D/g, '');
+    const msgParceiro = `Olá ${nome}, seu cadastro foi recebido com sucesso! Aguarde nossa aprovação.`;
+    window.location.href = `https://wa.me/${numeroParceiro}?text=${encodeURIComponent(msgParceiro)}`;
+
+    alert("Cadastro enviado com sucesso!");
+    form.reset();
+  } catch (err) {
+    console.error("Erro inesperado:", err);
+    alert("Erro ao cadastrar. Verifique sua conexão.");
+  }
 });
 
-<!-- Adicione isso no final da <script> dentro do cadastroparceiro.html -->
-<script>
-  async function cadastrarParceiro() {
-    const nome = document.getElementById("nome").value;
-    const cnpj = document.getElementById("cnpj").value;
-    const cidade = document.getElementById("cidade").value;
-    const ramo = document.getElementById("ramo").value;
-    const whatsapp = document.getElementById("whatsapp").value;
-    const token = "tk" + cnpj.slice(-6); // exemplo automático de token baseado no cnpj
-
-    // Enviar para o Airtable (substitua URL e chave se necessário)
-    const data = {
-      fields: {
-        nome,
-        cnpj,
-        cidade,
-        ramo,
-        whatsapp,
-        token,
-        ativo: true,
-        dataCadastro: new Date().toISOString().split("T")[0],
-      }
-    };
-
-    try {
-      const resp = await fetch('/api/salvarparceiro', {
-        method: "POST",
-        headers: {
-          Authorization: "Bearer YOUR_API_KEY",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      });
-
-      if (response.ok) {
-        alert("Cadastro enviado com sucesso! Você será redirecionado para o WhatsApp.");
-
-        // Redirecionar para WhatsApp
-        const texto = `Novo Cadastro de Parceiro:%0A%0A\ud83e\uddfe *Nome:* ${nome}%0A\ud83d\udcc7 *CNPJ:* ${cnpj}%0A\ud83c\udfd9\ufe0f *Cidade:* ${cidade}%0A\ud83c\udfe2 *Ramo:* ${ramo}%0A\ud83d\udcf1 *WhatsApp:* ${whatsapp}`;
-        const url = `https://wa.me/5528999692303?text=${texto}`;
-        window.open(url, "_blank");
-      } else {
-        alert("Erro ao enviar para o Airtable.");
-      }
-    } catch (error) {
-      console.error("Erro ao cadastrar parceiro:", error);
-      alert("Erro inesperado.");
-    }
+// Oculta banner de cookies
+function aceitarCookies() {
+  document.getElementById('cookie-banner').style.display = 'none';
+  document.cookie = "cookiesAceitos=true; max-age=31536000; path=/";
+}
+window.addEventListener('load', () => {
+  if (document.cookie.includes('cookiesAceitos=true')) {
+    document.getElementById('cookie-banner').style.display = 'none';
   }
+});
 </script>
+
 <button id="voltar-fixo" onclick="window.history.back()">⬅️ Voltar</button>
 
 </body>

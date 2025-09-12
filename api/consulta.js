@@ -1,6 +1,14 @@
 // api/consulta.js
 export default async function handler(req, res) {
-  const { tipo, cnpj, token } = req.query;
+  let tipo, cnpj, token;
+if (req.method === 'GET') {
+  tipo = req.query.tipo;
+  cnpj = req.query.cnpj;
+  token = req.query.token;
+} else if (req.method === 'POST') {
+  ({ tipo, cnpj, token } = req.body || {});
+}
+
 
   if (tipo === 'parceirosLogin') {
     try {

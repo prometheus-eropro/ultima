@@ -325,6 +325,15 @@ const parceiro = parceiros.find(p => p.idPublico?.toUpperCase() === id?.toUpperC
   document.getElementById("idPublico").textContent = parceiro.idPublico || "";
   document.getElementById("cidade").textContent = parceiro.cidade || "";
 })();
+window.onload = function () {
+  const nome = sessionStorage.getItem("nomeParceiro") || "Parceiro";
+  const whatsapp = sessionStorage.getItem("whatsapp") || "";
+  const instagram = sessionStorage.getItem("instagram") || "";
+  document.getElementById("nome").textContent = nome;
+  document.getElementById("zap").href = `https://wa.me/${whatsapp}`;
+  document.getElementById("insta").href = `https://instagram.com/${instagram}`;
+};
+
 </script>
 
 

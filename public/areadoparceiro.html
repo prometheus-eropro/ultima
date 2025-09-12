@@ -183,36 +183,8 @@ async function entrarPainel() {
     btn.disabled = false; btn.textContent = textoOriginal;
   }
 }
-fetch('/api/gateway?tabela=parceiros')
-<!-- areadoparceiro.html (JS interno ou externo) -->
-<script>
-async function validarLoginParceiro(event) {
-  event.preventDefault();
-
-  const cnpj = document.getElementById('cnpj').value;
-  const token = document.getElementById('token').value;
-
-  try {
-    const res = await fetch(`/api/consulta?tipo=parceirosLogin&cnpj=${cnpj}&token=${token}`);
-    const json = await res.json();
-
-    if (json.status === 'ok') {
-      alert('Login aprovado!');
-      window.location.href = 'paineldoparceiro.html';
-    } else {
-      alert('Login inválido. Verifique os dados.');
-    }
-  } catch (erro) {
-    console.error('Erro na validação:', erro);
-    alert('Erro na conexão. Tente novamente.');
-  }
-}
-</script>
-
 </script>
 <button id="voltar-fixo" onclick="window.history.back()">⬅️ Voltar</button>
-
-
 
 </body>
 </html>
