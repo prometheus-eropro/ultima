@@ -21,6 +21,10 @@
   width: auto !important;   /* força a largura mínima */
   display: inline-block;    /* impede de ocupar linha toda */
 }
+#voltar-fixo {
+  width: auto !important;
+  display: inline-block;
+}
 
     body {
       font-family: Arial, sans-serif;
@@ -167,12 +171,11 @@
     };
 
     try {
-      const resp = await fetch('https://airtable-api-jade.vercel.app/api/clientes', {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(dados)
-      });
-
+      const resp = await fetch('/api/clientes', {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify(dados)
+});
       if (!resp.ok) {
   const texto = await resp.text();
   console.error("Erro na API:", texto);
