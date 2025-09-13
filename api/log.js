@@ -5,21 +5,23 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { nomeCliente, idPublico, log_erros, origemConsulta, dataHora } = req.body;
+    const { nomeCliente, idPublico, cnpj, token, log_erros, origemConsulta, dataHora } = req.body;
 
     const baseId = process.env.AIRTABLE_BASE_ID;
-    const token = process.env.AIRTABLE_TOKEN;
+    const apiKey = process.env.AIRTABLE_TOKEN;
 
     const response = await fetch(`https://api.airtable.com/v0/${baseId}/log`, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
         fields: {
           nomeCliente,
           idPublico,
+          cnpj,
+          token,
           log_erros,
           origemConsulta,
           dataHora
@@ -27,9 +29,7 @@ export default async function handler(req, res) {
       })
     });
 
-    if (!response.ok) {
-      throw new Error(`Erro Airtable: ${response.status}`);
-    }
+    if (!response.ok) throw new Error(`Erro Airtable: ${response.status}`);
 
     const data = await response.json();
     return res.status(200).json({ success: true, data });

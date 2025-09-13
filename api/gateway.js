@@ -3,14 +3,13 @@ export default async function handler(req, res) {
   try {
     const origin = req.headers.origin;
     const allowedOrigins = [
-      "http://localhost:3000",             // dev local
-      "https://ultima-neon.vercel.app",    // deploy de testes
-      "https://www.aproveitai.com.br",     // domínio oficial
-      "https://aproveitai.com.br"          // sem www, se alguém acessar direto
+      "https://ultima-neon.vercel.app",
+      "https://www.aproveitai.com.br",
+      "https://aproveitai.com.br",
+      "http://localhost:3000"
     ];
 
     if (!allowedOrigins.includes(origin)) {
-      console.warn("Origin bloqueada:", origin);
       return res.status(403).json({ error: "Origin not allowed" });
     }
 
@@ -21,9 +20,13 @@ export default async function handler(req, res) {
     const { tabela } = req.query;
 
     const whitelist = {
-      parceiros: ["nome", "cidade", "ramo", "logourl", "instagram", "whatsapp", "desconto", "ativo"],
-      clientes: ["idpublico", "nome", "cidade", "ramo", "desconto", "ativo"],
-      beneficios: ["titulo", "descricao", "validade", "ativo"]
+      parceiros: ["cnpj", "nome", "cidade", "ramo", "logourl", "instagram", "whatsapp", "desconto", "ativo", "token"],
+      clientes: ["idpublico", "nome", "cidade", "ramo", "desconto", "ativo", "cnpj"],
+      beneficios: ["titulo", "descricao", "validade", "ativo"],
+      promocoes: ["titulo", "descricao", "validade", "ativo"],
+      depoimentos: ["nome", "mensagem", "cidade", "ativo"],
+      faq: ["pergunta", "resposta", "ativo"],
+      log: ["origemConsulta", "idPublico", "cnpj", "token", "log_erros", "dataHora"]
     };
 
     if (!tabela || !whitelist[tabela]) {
