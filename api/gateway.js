@@ -1,19 +1,28 @@
 // /api/gateway.js
 export default async function handler(req, res) {
   try {
-    const origin = req.headers.origin;
+const origin = req.headers.origin || "";
 const allowedOrigins = [
   "https://ultima-neon.vercel.app",
   "https://www.aproveitai.com.br",
   "https://aproveitai.com.br",
   "http://localhost:3000",
-  "http://127.0.0.1:5500",
-  null
+  "http://127.0.0.1:5500"
 ];
 
-    if (!allowedOrigins.includes(origin)) {
-      return res.status(403).json({ error: "Origin not allowed" });
-    }
+// Permite chamadas internas do Vercel (sem origin) e do localhost
+if (origin && !allowedOrigins.includes(origin)) {
+  return res.status(403).json({ error: "Origin not allowed" });
+}
+
+// Configura CORS no response
+res.setHeader("Access-Control-Allow-Origin", origin || "*");
+res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
+res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+
+if (req.method === "OPTIONS") {
+  return res.status(200).end();
+}
 
     if (req.method !== "GET") {
       return res.status(405).json({ error: "Método não permitido" });
