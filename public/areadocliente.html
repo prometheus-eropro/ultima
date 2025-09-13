@@ -132,7 +132,7 @@ body, html {
   <div class="box">
     <h2>Consultar seu Dados, Benefícios, Promoções e o Cartão AproveitAI</h2>
     <p>Digite seu ID Público para acessar:</p>
-    <input type="text" id="Id" placeholder="APV-XXXXX">
+    <input type="text" id="Id" placeholder="APV-XXXXX-YYYYY">
 <p id="carregando" style="display:none;color:#007a33;">🔄 Carregando informações...</p>
     <button onclick="acessar()">Acessar</button>
     <p id="erro" class="mensagem-erro">Digite um ID válido.</p>
@@ -148,6 +148,23 @@ body, html {
 </div>
 
 <script>
+  async function registrarErro(mensagem, idPublico) {
+    try {
+      await fetch("/api/log", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          origemConsulta: "areadocliente",
+          idPublico,
+          log_erros: mensagem,
+          dataHora: new Date().toISOString()
+        })
+      });
+    } catch (e) {
+      console.error("Falha ao registrar log:", e);
+    }
+  }
+
   async function acessar() {
     const valor = document.getElementById("Id").value.trim()
       .toUpperCase()
@@ -159,111 +176,70 @@ body, html {
     erro.style.display = 'none';
     carregando.style.display = "block";
 
+    // Corrigido: regex compatível com placeholder APV-XXXXX-YYYYY
     const regex = /^APV-\w{5}-\w{5}$/;
     if (!regex.test(valor)) {
-      erro.textContent = 'Formato inválido. Use: APV-XXXXX';
+      erro.textContent = 'Formato inválido. Use: APV-XXXXX-YYYYY';
       erro.style.display = 'block';
       carregando.style.display = "none";
       return;
     }
-async function registrarErro(mensagem, idPublico) {
-  try {
-    await fetch("/api/log", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        origemConsulta: "areadocliente",
-        idPublico,
-        log_erros: mensagem,
-        dataHora: new Date().toISOString()
-      })
-    });
-  } catch (e) {
-    console.error("Falha ao registrar log:", e);
-  }
-}
 
     try {
-  const resposta = await fetch(`/api/clientes?idPublico=${encodeURIComponent(valor)}`);
+      const resposta = await fetch(`/api/clientes?idPublico=${encodeURIComponent(valor)}`);
 
-  if (!resposta.ok) {
-    await registrarErro("Falha API clientes", valor);
-    throw new Error("Falha na API");
-  }
+      if (!resposta.ok) {
+        await registrarErro("Falha API clientes", valor);
+        throw new Error("Falha na API");
+      }
 
-  const dados = await resposta.json();
-  const cliente = dados[0];
+      const dados = await resposta.json();
+      const cliente = dados[0];
 
-  if (!cliente) {
-    erro.textContent = 'ID não encontrado.';
-    erro.style.display = 'block';
-    carregando.style.display = "none";
+      if (!cliente) {
+        erro.textContent = 'ID não encontrado.';
+        erro.style.display = 'block';
+        carregando.style.display = "none";
 
-    await registrarErro("ID não encontrado", valor);
+        await registrarErro("ID não encontrado", valor);
 
-    window.open(
-      `https://wa.me/5528999692303?text=Olá, meu ID é ${valor}, não estou conseguindo acessar meu cadastro.`,
-      '_blank'
-    );
-    return;
-  }
+        window.open(
+          `https://wa.me/5528999692303?text=Olá, meu ID é ${valor}, não estou conseguindo acessar meu cadastro.`,
+          '_blank'
+        );
+        return;
+      }
 
-  const status = cliente.ativo || cliente.Ativo;
+      if (!cliente.ativo) {
+        carregando.style.display = "none";
+        alert('Cadastro ainda não liberado. Entre em contato pelo WhatsApp.');
 
-  if (!status) {
-    carregando.style.display = "none";
-    alert('Cadastro ainda não liberado. Entre em contato pelo WhatsApp.');
+        await registrarErro("Cadastro inativo/bloqueado", valor);
 
-    await registrarErro("Cadastro inativo/bloqueado", valor);
+        window.open(
+          `https://wa.me/5528999692303?text=Olá, meu ID é ${valor}, não estou conseguindo acessar meu cadastro.`,
+          '_blank'
+        );
+        return;
+      }
 
-    window.open(
-      `https://wa.me/5528999692303?text=Olá, meu ID é ${valor}, não estou conseguindo acessar meu cadastro.`,
-      '_blank'
-    );
-    return;
-  }
+      // Se tudo OK → redireciona
+      window.location.href = `painelcliente.html?id=${encodeURIComponent(valor)}`;
 
-  // Se tudo OK → redireciona
-  window.location.href = `painelcliente.html?id=${encodeURIComponent(valor)}`;
+    } catch (e) {
+      erro.textContent = 'Erro ao conectar com o servidor.';
+      erro.style.display = 'block';
 
-} catch (e) {
-  erro.textContent = 'Erro ao conectar com o servidor.';
-  erro.style.display = 'block';
+      await registrarErro("Erro de rede/API", valor);
 
-  await registrarErro("Erro de rede/API", valor);
-
-  window.open(
-    `https://wa.me/5528999692303?text=Olá, meu ID é ${valor}, ocorreu um erro de conexão ao acessar meu cadastro.`,
-    '_blank'
-  );
-} finally {
-  carregando.style.display = "none";
-}
-fetch('/api/gateway?tabela=clientes')
-
-async function buscarCliente() {
-  const id = document.getElementById("idPublico").value.trim();
-  if (!id) return alert("Digite seu ID Público");
-
-  try {
-    const resp = await fetch(`/api/clientes?idPublico=${encodeURIComponent(id)}`);
-    if (!resp.ok) throw new Error("Falha na API");
-    
-    const data = await resp.json();
-    if (!data.clientes || data.clientes.length === 0) {
-      document.getElementById("resultado").innerText = "Nenhum cliente encontrado.";
-      return;
+      window.open(
+        `https://wa.me/5528999692303?text=Olá, meu ID é ${valor}, ocorreu um erro de conexão ao acessar meu cadastro.`,
+        '_blank'
+      );
+    } finally {
+      carregando.style.display = "none";
     }
-
-    // renderizar cliente
-    console.log(data.clientes);
-    document.getElementById("resultado").innerText = JSON.stringify(data.clientes, null, 2);
-  } catch (err) {
-    console.error(err);
-    document.getElementById("resultado").innerText = "Erro ao conectar com o servidor.";
   }
-}
-
 </script>
 <button id="voltar-fixo" onclick="window.history.back()">⬅️ Voltar</button>
 </body>

@@ -1,5 +1,4 @@
 // consulta.js
-
 const form = document.getElementById("form-consulta");
 
 form.addEventListener("submit", async (e) => {
@@ -13,7 +12,7 @@ form.addEventListener("submit", async (e) => {
   }
 
   try {
-    const response = await fetch(`/api/clientes?id=${encodeURIComponent(id)}`);
+    const response = await fetch(`/api/clientes?idPublico=${encodeURIComponent(id)}`);
 
     if (response.ok) {
       const data = await response.json();
