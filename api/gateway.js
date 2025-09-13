@@ -3,8 +3,10 @@ export default async function handler(req, res) {
   try {
     const origin = req.headers.origin;
     const allowedOrigins = [
-      "http://localhost:3000",
-      "https://ultima-neon.vercel.app"
+      "http://localhost:3000",             // dev local
+      "https://ultima-neon.vercel.app",    // deploy de testes
+      "https://www.aproveitai.com.br",     // domínio oficial
+      "https://aproveitai.com.br"          // sem www, se alguém acessar direto
     ];
 
     if (!allowedOrigins.includes(origin)) {
