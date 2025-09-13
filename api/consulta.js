@@ -49,3 +49,8 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: "Erro interno no servidor" });
   }
 }
+const { cnpj, token } = req.body;
+
+if (!cnpj || !token) {
+  return res.status(400).json({ error: "CNPJ e Token são obrigatórios" });
+}

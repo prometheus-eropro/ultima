@@ -2,12 +2,14 @@
 export default async function handler(req, res) {
   try {
     const origin = req.headers.origin;
-    const allowedOrigins = [
-      "https://ultima-neon.vercel.app",
-      "https://www.aproveitai.com.br",
-      "https://aproveitai.com.br",
-      "http://localhost:3000"
-    ];
+const allowedOrigins = [
+  "https://ultima-neon.vercel.app",
+  "https://www.aproveitai.com.br",
+  "https://aproveitai.com.br",
+  "http://localhost:3000",
+  "http://127.0.0.1:5500",
+  null
+];
 
     if (!allowedOrigins.includes(origin)) {
       return res.status(403).json({ error: "Origin not allowed" });
