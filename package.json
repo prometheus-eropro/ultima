@@ -1,6 +1,7 @@
 {
-  "name": "site-aproveitai.com.br-(cartao)-120925-1400",
+  "name": "site-aproveitai",
   "version": "1.0.0",
+  "description": "",
   "main": "index.js",
   "type": "module",
   "scripts": {
@@ -9,7 +10,6 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "",
   "engines": {
     "node": "20.x"
   }
