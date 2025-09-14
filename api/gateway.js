@@ -47,3 +47,4 @@ module.exports = async (req, res) => {
     return res.status(500).json({ error: 'SERVER_ERROR', message: e.message });
   }
 };
+const response = await fetch(url, { headers: { Authorization: `Bearer ${apiKey}` } });

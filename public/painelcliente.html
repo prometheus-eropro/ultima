@@ -168,18 +168,33 @@ body, p, li, span {
   // 1) Carrega todos os clientes e filtra pelo idPublico no front
 const r = await fetch('/api/gateway?tabela=clientes');
 if (!r.ok) return;
-const clientes = await r.json();
-const clientes = await r.json();
-if (!Array.isArray(clientes)) {
-  console.error("Erro na resposta da API /clientes:", clientes);
+const r = await fetch('/api/gateway?tabela=clientes');
+if (!r.ok) return;
+const data = await r.json();
+
+if (!Array.isArray(data.records)) {
+  console.error("Erro na resposta da API /clientes:", data);
   alert("Erro ao carregar dados do cliente. Tente novamente mais tarde.");
   return;
 }
 
-console.log("Resposta da API /clientes:", clientes); // 👈 Adicione isto
-const c = clientes.find(x => (x.idPublico || "").toUpperCase() === id.toUpperCase());
+console.log("Resposta da API /clientes:", data.records);
 
-  const c = clientes.find(x => (x.idPublico || "").toUpperCase() === id.toUpperCase());
+const c = data.records.find(x => (x.fields.idPublico || "").toUpperCase() === id.toUpperCase());
+if (!c) {
+  alert("Cliente não encontrado.");
+  return;
+}
+
+const fields = c.fields;
+document.getElementById("nome").textContent = fields.nome || "";
+document.getElementById("cidade").textContent = fields.cidade || "";
+document.getElementById("grupo").textContent = fields.grupo || "";
+document.getElementById("idPublico").textContent = fields.idPublico || "";
+document.getElementById("cpf").textContent = fields.cpf || "";
+document.getElementById("celular").textContent = fields.celular || "";
+document.getElementById("dataCadastro").textContent = (fields.dataCadastro || "").split("T")[0] || "";
+
   if (!c) return;
 
   // 2) Preenche dados básicos
