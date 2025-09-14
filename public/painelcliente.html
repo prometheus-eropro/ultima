@@ -169,6 +169,16 @@ body, p, li, span {
 const r = await fetch('/api/gateway?tabela=clientes');
 if (!r.ok) return;
 const clientes = await r.json();
+const clientes = await r.json();
+if (!Array.isArray(clientes)) {
+  console.error("Erro na resposta da API /clientes:", clientes);
+  alert("Erro ao carregar dados do cliente. Tente novamente mais tarde.");
+  return;
+}
+
+console.log("Resposta da API /clientes:", clientes); // 👈 Adicione isto
+const c = clientes.find(x => (x.idPublico || "").toUpperCase() === id.toUpperCase());
+
   const c = clientes.find(x => (x.idPublico || "").toUpperCase() === id.toUpperCase());
   if (!c) return;
 
