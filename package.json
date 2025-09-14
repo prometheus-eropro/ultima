@@ -1,6 +1,6 @@
 {
   "engines": {
-    "node": "20.x"
+  "node": "20.x"
   },
   "name": "site-aproveitai.com.br-(cartao)-120925-1400",
   "version": "1.0.0",
@@ -13,5 +13,6 @@
   "license": "ISC",
   "description": "",
    }
-}
 "type": "module"
+}
+
