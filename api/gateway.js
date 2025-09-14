@@ -1,3 +1,5 @@
+const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
+
 // /api/gateway.js
 module.exports = async (req, res) => {
   try {
