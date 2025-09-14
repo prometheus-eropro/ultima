@@ -2,15 +2,18 @@
   "name": "site-aproveitai",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "gateway.js",
   "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node gateway.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "engines": {
     "node": "20.x"
+  },
+  "dependencies": {
+    "node-fetch": "^3.3.2"
   }
 }
