@@ -1,10 +1,8 @@
 {
-  "engines": {
-  "node": "20.x"
-  },
   "name": "site-aproveitai.com.br-(cartao)-120925-1400",
   "version": "1.0.0",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -12,7 +10,7 @@
   "author": "",
   "license": "ISC",
   "description": "",
-   }
-"type": "module"
+  "engines": {
+    "node": "20.x"
+  }
 }
-
