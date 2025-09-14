@@ -1,60 +1,50 @@
-// /pages/api/gateway.js
-// Gateway central para redirecionar as requisições para cada módulo.
-// ⚠️ Importante: todos os arquivos devem estar em /pages/api/ para o Vercel reconhecer como rota de API.
-
-import clientes from "./clientes.js";
-import parceiros from "./parceiros.js";
-import beneficios from "./beneficios.js";
-import promocoes from "./promocoes.js";
-import depoimentos from "./depoimentos.js";
-import log from "./log.js";
-import salvarparceiro from "./salvarparceiro.js";
-import consulta from "./consulta.js";
-import health from "./health.js";
-
-export default async function handler(req, res) {
+// /api/gateway.js
+module.exports = async (req, res) => {
   try {
-    const { tabela } = req.query;
-
-    if (!tabela) {
-      return res.status(400).json({ error: "Parâmetro 'tabela' é obrigatório." });
+    if (req.method !== 'GET') {
+      return res.status(405).json({ error: 'Method not allowed' });
     }
 
-    console.log(`🔍 Consulta recebida para a tabela: ${tabela}`);
+    // normaliza tabela (case-insensitive) e mapeia para o nome da tabela no Airtable
+    const raw = (req.query.tabela || '').toString().toLowerCase();
+    const map = {
+      clientes: 'clientes',
+      parceiros: 'parceiros',
+      promocoes: 'promocoes',
+      beneficios: 'beneficios',
+      depoimentos: 'depoimentos',
+      faq: 'faq',
+      log: 'log'
+    };
+    const tabela = map[raw];
+    if (!tabela) return res.status(400).json({ error: 'Tabela inválida', recebida: raw });
 
-    switch (tabela.toLowerCase()) {
-      case "clientes":
-        return await clientes(req, res);
-
-      case "parceiros":
-        return await parceiros(req, res);
-
-      case "beneficios":
-        return await beneficios(req, res);
-
-      case "promocoes":
-        return await promocoes(req, res);
-
-      case "depoimentos":
-        return await depoimentos(req, res);
-
-      case "log":
-        return await log(req, res);
-
-      case "salvarparceiro":
-        return await salvarparceiro(req, res);
-
-      case "consulta":
-        return await consulta(req, res);
-
-      case "health":
-        return await health(req, res);
-
-      default:
-        return res.status(400).json({ error: `Tabela '${tabela}' não suportada.` });
+    const baseId = process.env.AIRTABLE_BASE_ID;
+    const apiKey = process.env.AIRTABLE_API_KEY;
+    if (!baseId || !apiKey) {
+      return res.status(500).json({ error: 'ENV_MISSING', dicas: 'Configure AIRTABLE_BASE_ID e AIRTABLE_API_KEY na Vercel (All Environments)' });
     }
-  } catch (err) {
-    console.error("💥 Erro interno no gateway:", err);
-    return res.status(500).json({ error: "Erro interno no gateway", detalhe: err.message });
+
+    const url = new URL(`https://api.airtable.com/v0/${baseId}/${encodeURIComponent(tabela)}`);
+    // parâmetros opcionais
+    ['pageSize','page','view','maxRecords','filterByFormula','sort[0][field]','sort[0][direction]']
+      .forEach(k => { if (req.query[k]) url.searchParams.set(k, req.query[k]); });
+
+    const r = await fetch(url, { headers: { Authorization: `Bearer ${apiKey}` } });
+    const text = await r.text();
+
+    if (!r.ok) {
+      return res.status(r.status).json({ error: 'AIRTABLE_ERROR', status: r.status, body: text.slice(0,500) });
+    }
+    try {
+      const json = JSON.parse(text);
+      res.setHeader('Cache-Control', 's-maxage=30, stale-while-revalidate=60');
+      return res.status(200).json(json);
+    } catch {
+      return res.status(500).json({ error: 'NOT_JSON_FROM_AIRTABLE', sample: text.slice(0,500) });
+    }
+  } catch (e) {
+    console.error('[gateway] erro:', e);
+    return res.status(500).json({ error: 'SERVER_ERROR', message: e.message });
   }
-}
+};

@@ -7,25 +7,21 @@
   <style>
 
 #voltar-fixo {
-  position: fixed;      /* fixa na tela */
-  bottom: 15px;         /* distância do rodapé */
-  left: 15px;           /* distância da lateral */
-  padding: 10px 20px;    /* tamanho compacto */
-  font-size: 13px;      /* texto menor */
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  padding: 12px 24px;
+  font-size: 16px;
   background-color: #0a7f2e;
-  color: #fff;
+  color: white;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  box-shadow: 0 3px 8px rgba(0,0,0,0.3);
   z-index: 999;
-  width: auto !important;   /* força a largura mínima */
-  display: inline-block;    /* impede de ocupar linha toda */
 }
-#voltar-fixo {
-  width: auto !important;
-  display: inline-block;
-}
+
+
 
 body, html {
   min-height: 100vh;
@@ -125,38 +121,19 @@ body, html {
 <script>
 function sanitizeCNPJ(v){ return (v||"").replace(/\D/g,""); }
 
-// Função para registrar log no Airtable
-async function registrarErro(mensagem, cnpj, token) {
-  try {
-    await fetch("/api/log", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        origemConsulta: "areadoparceiro",
-        cnpj,
-        token,
-        log_erros: mensagem,
-        dataHora: new Date().toISOString()
-      })
-    });
-  } catch (e) {
-    console.error("Falha ao registrar log parceiro:", e);
-  }
-}
-
 async function buscarParceiro(cnpj, token) {
-  const resp = await fetch('/api/consulta?tipo=parceiroLogin', {
+  const resp = await fetch('/api/consulta?tipo=parceirosLogin', {
+
     method: 'POST',
     headers: { 'Content-Type':'application/json' },
     body: JSON.stringify({ cnpj: sanitizeCNPJ(cnpj), token: (token||"").trim() })
   });
-
   if (!resp.ok) {
-    if (resp.status === 401) return null;    // credenciais inválidas
-    if (resp.status === 423) return "inativo"; // parceiro inativo
+    if (resp.status === 401) return null;          // credenciais inválidas
+    if (resp.status === 423) return "inativo";      // parceiro inativo
     throw new Error('Falha no servidor');
   }
-  return await resp.json();
+  return await resp.json(); // {nome, cnpj, grupo, idPublico, logoUrl, whatsapp, instagram}
 }
 
 async function entrarPainel() {
@@ -164,12 +141,14 @@ async function entrarPainel() {
   const cnpj = document.getElementById('cnpj').value;
   const token = document.getElementById('token').value;
 
+  // Validação rápida de CNPJ: 14 dígitos
   const cnpjNum = sanitizeCNPJ(cnpj);
   if (!cnpjNum || cnpjNum.length !== 14 || !token) {
     alert('Preencha CNPJ (14 dígitos) e token.');
     return;
   }
 
+  // feedback de carregamento
   const textoOriginal = btn.textContent;
   btn.disabled = true; btn.textContent = 'Validando...';
 
@@ -178,47 +157,58 @@ async function entrarPainel() {
 
     if (!parceiro) {
       alert("CNPJ ou Token inválidos.");
-      await registrarErro("CNPJ/Token inválidos", cnpjNum, token);
-      window.open(
-        `https://wa.me/5528999692303?text=Erro de login parceiro. CNPJ: ${cnpjNum}, Token: ${token}`,
-        '_blank'
-      );
       return;
     }
-
     if (parceiro === "inativo") {
       alert("Este parceiro está inativo. Acesso negado.");
-      await registrarErro("Parceiro inativo", cnpjNum, token);
-      window.open(
-        `https://wa.me/5528999692303?text=Parceiro inativo. CNPJ: ${cnpjNum}`,
-        '_blank'
-      );
       return;
     }
 
-    // Login válido
+    // Armazene só o necessário, por sessão
     sessionStorage.setItem("cnpjParceiro", parceiro.cnpj);
     sessionStorage.setItem("nomeParceiro", parceiro.nome);
     sessionStorage.setItem("whatsapp", parceiro.whatsapp || "");
     sessionStorage.setItem("instagram", parceiro.instagram || "");
 
+    // Redireciona
     window.location.href = "paineldoparceiro.html";
-
   } catch (e) {
     console.error(e);
     alert("Erro ao validar parceiro. Tente novamente.");
-    await registrarErro("Erro de rede/API", cnpjNum, token);
-    window.open(
-      `https://wa.me/5528999692303?text=Erro de servidor ao validar parceiro. CNPJ: ${cnpjNum}`,
-      '_blank'
-    );
   } finally {
     btn.disabled = false; btn.textContent = textoOriginal;
   }
 }
+fetch('/api/gateway?tabela=parceiros')
+<!-- areadoparceiro.html (JS interno ou externo) -->
+<script>
+async function validarLoginParceiro(event) {
+  event.preventDefault();
+
+  const cnpj = document.getElementById('cnpj').value;
+  const token = document.getElementById('token').value;
+
+  try {
+    const res = await fetch(`/api/consulta?tipo=parceirosLogin&cnpj=${cnpj}&token=${token}`);
+    const json = await res.json();
+
+    if (json.status === 'ok') {
+      alert('Login aprovado!');
+      window.location.href = 'paineldoparceiro.html';
+    } else {
+      alert('Login inválido. Verifique os dados.');
+    }
+  } catch (erro) {
+    console.error('Erro na validação:', erro);
+    alert('Erro na conexão. Tente novamente.');
+  }
+}
 </script>
 
+</script>
 <button id="voltar-fixo" onclick="window.history.back()">⬅️ Voltar</button>
+
+
 
 </body>
 </html>

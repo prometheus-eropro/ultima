@@ -103,24 +103,18 @@ body, html {
     }
 
 #voltar-fixo {
-  position: fixed;      /* fixa na tela */
-  bottom: 15px;         /* distância do rodapé */
-  left: 15px;           /* distância da lateral */
-  padding: 10px 20px;    /* tamanho compacto */
-  font-size: 13px;      /* texto menor */
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  padding: 12px 24px;
+  font-size: 16px;
   background-color: #0a7f2e;
-  color: #fff;
+  color: white;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  box-shadow: 0 3px 8px rgba(0,0,0,0.3);
   z-index: 999;
-  width: auto !important;   /* força a largura mínima */
-  display: inline-block;    /* impede de ocupar linha toda */
-}
-#voltar-fixo {
-  width: auto !important;
-  display: inline-block;
 }
   </style>
 </head>
@@ -178,89 +172,111 @@ body, html {
     <button onclick="aceitarCookies()">Aceitar</button>
   </div>
 
-<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"defer></script>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script>
-document.getElementById('form-parceiro').addEventListener('submit', async function (e) {
-  e.preventDefault();
-  const form = e.target;
 
-  const nome = form['nome'].value;
-  const cnpj = form['cnpj'].value;
-  const cidade = form['cidade'].value;
-  const ramo = form['ramo'].value;
-  const whatsapp = form['contato'].value;
-  const instagram = form['instagram'].value;
-  const site = form['site'].value;
-  const email = form['email'].value;
-  const beneficio = form['beneficio'].value;
-  const token = "tk" + cnpj.slice(-6); // gera token baseado no cnpj
+  const table = 'parceiros';
 
-  if (!cnpj || !nome || !whatsapp) {
-    alert("Preencha os campos obrigatórios.");
-    return;
-  }
+  document.getElementById('form-parceiro').addEventListener('submit', async function (e) {
+    e.preventDefault();
+    const form = e.target;
 
-  const parceiro = {
-    nome,
-    cnpj,
-    cidade,
-    ramo,
-    whatsapp,
-    instagram,
-    site,
-    email,
-    beneficio,
-    token,
-    ativo: false,
-    dataCadastro: new Date().toISOString().split("T")[0],
-  };
-
-  try {
-    const resp = await fetch('/api/salvarparceiro', {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(parceiro)
-    });
-
-    const json = await resp.json();
-
-    if (!resp.ok) {
-      console.error("Erro ao salvar:", json);
-      alert("Erro ao salvar cadastro.");
-      return;
+    let site = form.site.value.trim();
+    if (site && !site.startsWith("http://") && !site.startsWith("https://")) {
+      site = "https://" + site;
     }
 
-    // Envia zap para admin
-    const zapAdmin = "5528999692303";
-    const msgAdmin = `Novo parceiro cadastrado:\n\nNome: ${nome}\nCNPJ: ${cnpj}\nCidade: ${cidade}\nRamo: ${ramo}`;
-    window.open(`https://wa.me/${zapAdmin}?text=${encodeURIComponent(msgAdmin)}`, "_blank");
-
-    // Zap para o próprio parceiro
-    const numeroParceiro = "55" + whatsapp.replace(/\D/g, '');
-    const msgParceiro = `Olá ${nome}, seu cadastro foi recebido com sucesso! Aguarde nossa aprovação.`;
-    window.location.href = `https://wa.me/${numeroParceiro}?text=${encodeURIComponent(msgParceiro)}`;
-
-    alert("Cadastro enviado com sucesso!");
-    form.reset();
-  } catch (err) {
-    console.error("Erro inesperado:", err);
-    alert("Erro ao cadastrar. Verifique sua conexão.");
-  }
-});
-
-// Oculta banner de cookies
-function aceitarCookies() {
-  document.getElementById('cookie-banner').style.display = 'none';
-  document.cookie = "cookiesAceitos=true; max-age=31536000; path=/";
+    const data = {
+      nomeFantasia: form['nome'].value,
+      cnpj: form['cnpj'].value,
+      cidade: form['cidade'].value,
+      ramo: form['ramo'].value,
+      beneficios: form['beneficio'].value,
+      whatsapp: form['contato'].value,
+      instagram: form['instagram'].value,
+      site: site,
+      email: form['email'].value,
+      ativo: "NAO",
+      dataCadastro: new Date().toISOString().split("T")[0]
+    };
+const cnpjLimpo = data.cnpj.replace(/\D/g, '');
+if (cnpjLimpo.length !== 14) {
+  alert("CNPJ inválido.");
+  return;
 }
-window.addEventListener('load', () => {
-  if (document.cookie.includes('cookiesAceitos=true')) {
-    document.getElementById('cookie-banner').style.display = 'none';
-  }
+
+if (data.whatsapp.length < 8) {
+  alert("Número de contato inválido.");
+  return;
+}
+
+    try {
+const resp = await fetch('https://airtable-api-jade.vercel.app/api/parceiros', {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify(data)
 });
+
+if (!resp.ok) {
+  alert("Erro ao cadastrar parceiro.");
+  return;
+}
+
+
+
+// Após confirmação do cadastro
+      const nome = form['nome'].value;
+      const cnpj = form['cnpj'].value;
+      const numeroParceiro = "55" + form['contato'].value.replace(/\D/g, '');
+      const zapAdmin = "5528999692303";
+
+      // Mensagem para o parceiro
+      const msgParceiro = `Olá ${nome}, seu cadastro foi recebido com sucesso e será avaliado em breve.`;
+
+      // Mensagem para o admin
+      const msgAdmin = `Novo cadastro de parceiro:
+
+Nome: ${nome}
+CNPJ: ${cnpj}
+
+Deseja liberar este parceiro?`;
+
+      // Envia zap para o admin
+      window.open(`https://wa.me/${zapAdmin}?text=${encodeURIComponent(msgAdmin)}`, '_blank');
+
+      // Redireciona para o zap do parceiro
+      alert("Cadastro enviado com sucesso! Você será redirecionado para o WhatsApp.");
+      const linkZap = `https://wa.me/${numeroParceiro}?text=${encodeURIComponent(msgParceiro)}`;
+      window.location.href = linkZap;
+
+      form.reset();
+    } catch (error) {
+      console.error("Erro detalhado:", error.response?.data || error);
+      alert('Erro ao enviar dados. Verifique a conexão ou os dados preenchidos.');
+    }
+  });
+
+  function aceitarCookies() {
+    const aviso = document.getElementById('cookie-banner');
+    if (aviso) aviso.style.display = 'none';
+    document.cookie = "cookiesAceitos=true; max-age=31536000; path=/";
+  }
+
+  window.addEventListener('load', () => {
+    const aviso = document.getElementById('cookie-banner');
+    if (document.cookie.includes('cookiesAceitos=true') && aviso) {
+      aviso.style.display = 'none';
+    }
+  });
 </script>
 
 <button id="voltar-fixo" onclick="window.history.back()">⬅️ Voltar</button>
 
 </body>
 </html>
+
+
+
+
+
+

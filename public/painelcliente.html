@@ -161,40 +161,32 @@ body, p, li, span {
 
 <script>
 (async () => {
-  const id = new URLSearchParams(location.search).get("id");
+  const params = new URLSearchParams(location.search);
+  const id = params.get("id"); // ?id=APV-xxxxx
   if (!id) return;
 
+  // 1) Carrega todos os clientes e filtra pelo idPublico no front
+const r = await fetch('/api/gateway?tabela=clientes');
+if (!r.ok) return;
+const clientes = await r.json();
+  const c = clientes.find(x => (x.idPublico || "").toUpperCase() === id.toUpperCase());
+  if (!c) return;
+
+  // 2) Preenche dados básicos
+  document.getElementById("nome").textContent = c.nome || "";
+  document.getElementById("cidade").textContent = c.cidade || "";
+  document.getElementById("grupo").textContent = c.grupo || "";
+  document.getElementById("idPublico").textContent = c.idPublico || "";
+  document.getElementById("cpf").textContent = c.cpf || "";
+  document.getElementById("celular").textContent = c.celular || "";
+  document.getElementById("dataCadastro").textContent = (c.dataCadastro || "").split("T")[0] || "";
+
+  // 3) Benefícios gerais + exclusivos (opcional, se quiser popular as listas)
   try {
-    // Pega dados dos clientes
-    const res = await fetch("/api/gateway?tabela=clientes");
-    const data = await res.json();
-    const cliente = data.find(c => (c.idPublico || "").toUpperCase() === id.toUpperCase());
-
-    if (!cliente) {
-      alert("Erro ao acessar seu cadastro. Entre em contato pelo WhatsApp.");
-      return;
-    }
-
-    if (!cliente.ativo) {
-      alert("Cadastro ainda não está ativo.");
-      return;
-    }
-
-    // Preenche os dados
-    document.getElementById("nome").textContent = cliente.nome || "";
-    document.getElementById("cidade").textContent = cliente.cidade || "";
-    document.getElementById("grupo").textContent = cliente.grupo || "";
-    document.getElementById("idPublico").textContent = cliente.idPublico || "";
-    document.getElementById("cpf").textContent = cliente.cpf || "";
-    document.getElementById("celular").textContent = cliente.celular || "";
-    document.getElementById("dataCadastro").textContent = (cliente.dataCadastro || "").split("T")[0] || "";
-
-    // Benefícios e promoções
-    const [bRes, pRes] = await Promise.all([
-      fetch("/api/gateway?tabela=beneficios"),
-      fetch("/api/gateway?tabela=promocoes"),
-    ]);
-
+const [bRes, pRes] = await Promise.all([
+  fetch("/api/gateway?tabela=beneficios"),
+  fetch("/api/gateway?tabela=promocoes"),
+]);
     const [beneficios, promocoes] = await Promise.all([bRes.json(), pRes.json()]);
 
     const ulBG = document.getElementById("beneficiosGerais");
@@ -202,7 +194,8 @@ body, p, li, span {
     beneficios.forEach(b => {
       const li = document.createElement("li");
       li.textContent = b.titulo ? `${b.titulo} — ${b.descricao || ""}` : (b.descricao || "");
-      (b.grupo && cliente.grupo && b.grupo.toLowerCase() === cliente.grupo.toLowerCase() ? ulBE : ulBG).appendChild(li);
+      // Se tiver campo "grupo" e combinar com o grupo do cliente, trata como exclusivo
+      (b.grupo && c.grupo && b.grupo.toLowerCase() === c.grupo.toLowerCase() ? ulBE : ulBG).appendChild(li);
     });
 
     const ulPG = document.getElementById("promocoesGerais");
@@ -211,29 +204,32 @@ body, p, li, span {
       const li = document.createElement("li");
       const periodo = [p.dataInicio, p.dataFim].filter(Boolean).join(" → ");
       li.textContent = p.titulo ? `${p.titulo} — ${p.descricao || ""} ${periodo ? `(${periodo})` : ""}` : (p.descricao || "");
-      (p.grupo && cliente.grupo && p.grupo.toLowerCase() === cliente.grupo.toLowerCase() ? ulPE : ulPG).appendChild(li);
+      (p.grupo && c.grupo && p.grupo.toLowerCase() === c.grupo.toLowerCase() ? ulPE : ulPG).appendChild(li);
     });
-
   } catch (e) {
-    console.error("Erro ao carregar os dados:", e);
-    alert("Erro ao buscar dados do cliente.");
+    // Se der ruim nas listas, o painel básico continua funcionando
+    console.warn("Falha ao carregar benefícios/promos:", e);
   }
 })();
 
+// ações dos botões
 function verCartao() {
   const id = document.getElementById("idPublico").textContent.trim();
   if (!id) return;
   location.href = `cartao.html?id=${encodeURIComponent(id)}`;
 }
-
 function enviarWhatsapp() {
   const nome = document.getElementById("nome").textContent || "";
   const id = document.getElementById("idPublico").textContent || "";
   const texto = `Olá! Gostaria de alterar meus dados do Cartão AproveitAI.%0A%0ANome: ${nome}%0AID: ${id}`;
   window.open(`https://wa.me/5528999692303?text=${texto}`, "_blank");
 }
+
+
 </script>
+
 <button id="voltar-fixo" onclick="window.history.back()">⬅️ Voltar</button>
+
 
 </body>
 </html>

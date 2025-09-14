@@ -5,12 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Cartão AproveitAI – os benefícios</title>
   <meta name="theme-color" content="#0a7f2e">
-<link rel="icon" href="/favicon.ico" type="image/x-icon">
-<link rel="apple-touch-icon" href="/logo-192.png">
-<link rel="manifest" href="/manifest.json">
-<meta name="theme-color" content="#0a7f2e">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="icon" href="logo-192.png">
+  <link rel="apple-touch-icon" href="logo-aproveitai.png">
   <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="manifest" href="manifest.webmanifest">
 
   <style>
     :root {
@@ -215,23 +214,28 @@ async function carregarClientes() {
   const data = await fetchJSON('/api/gateway?tabela=clientes&pageSize=50');
 }
 
-    async function fetchParceiros() {
-  try {
-    const resp = await fetch(`/api/gateway?tabela=parceiros`);
-    if (!resp.ok) {
-      const texto = await resp.text(); // lê mesmo que não seja JSON
-      throw new Error(`Erro API: ${resp.status} → ${texto}`);
-    }
+    async function fetchParceiros(offset) {
+  const p = new URLSearchParams();
+  p.set('pageSize', PAGE_SIZE);
+  if (filtrosAtuais.search) p.set('search', filtrosAtuais.search);
+  if (filtrosAtuais.city) p.set('city', filtrosAtuais.city);
+  if (filtrosAtuais.ramo) p.set('ramo', filtrosAtuais.ramo);
+  if (offset) p.set('offset', offset);
 
-    const data = await resp.json();
-    return data;
-  } catch (err) {
-    console.error("Erro ao buscar parceiros:", err);
-    elGrid.innerHTML = "<p>Erro ao carregar. Tente novamente mais tarde.</p>";
-
-      "<p>Erro ao carregar. Tente novamente mais tarde.</p>";
-    return [];
-  }
+  const fullUrl = `${API_PATH}&${p.toString()}`;
+  const data = await fetchJSON(fullUrl);
+  return {
+    items: (data.records || []).map(p => ({
+      nome: p.fields.nome,
+      cidade: p.fields.cidade,
+      ramo: p.fields.ramo,
+      logoUrl: p.fields.logoURL,
+      whatsapp: p.fields.whatsapp,
+      instagram: p.fields.instagram,
+      desconto: p.fields.desconto || ""
+    })),
+    nextOffset: data.offset
+  };
 }
     async function listar(reset) {
       try {
@@ -322,6 +326,8 @@ if ('serviceWorker' in navigator) {
     .then(() => console.log("SW registrado"))
     .catch(err => console.error("SW erro:", err));
 }
+</script>
+
 </script>
 
 </body>
