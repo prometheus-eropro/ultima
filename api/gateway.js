@@ -1,5 +1,3 @@
-const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
-
 // /api/gateway.js
 module.exports = async (req, res) => {
   try {
@@ -7,7 +5,6 @@ module.exports = async (req, res) => {
       return res.status(405).json({ error: 'Method not allowed' });
     }
 
-    // normaliza tabela (case-insensitive) e mapeia para o nome da tabela no Airtable
     const raw = (req.query.tabela || '').toString().toLowerCase();
     const map = {
       clientes: 'clientes',
@@ -28,7 +25,6 @@ module.exports = async (req, res) => {
     }
 
     const url = new URL(`https://api.airtable.com/v0/${baseId}/${encodeURIComponent(tabela)}`);
-    // parâmetros opcionais
     ['pageSize','page','view','maxRecords','filterByFormula','sort[0][field]','sort[0][direction]']
       .forEach(k => { if (req.query[k]) url.searchParams.set(k, req.query[k]); });
 
@@ -38,6 +34,7 @@ module.exports = async (req, res) => {
     if (!r.ok) {
       return res.status(r.status).json({ error: 'AIRTABLE_ERROR', status: r.status, body: text.slice(0,500) });
     }
+
     try {
       const json = JSON.parse(text);
       res.setHeader('Cache-Control', 's-maxage=30, stale-while-revalidate=60');
