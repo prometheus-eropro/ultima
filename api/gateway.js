@@ -42,9 +42,13 @@ module.exports = async (req, res) => {
     } catch {
       return res.status(500).json({ error: 'NOT_JSON_FROM_AIRTABLE', sample: text.slice(0,500) });
     }
-  } catch (e) {
-    console.error('[gateway] erro:', e);
-    return res.status(500).json({ error: 'SERVER_ERROR', message: e.message });
-  }
+catch (error) {
+  console.error('Erro interno:', error); // Isso aparecerá no log da Vercel
+  res.status(500).json({
+    code: '500',
+    message: 'A server error has occurred',
+    details: error.message
+  });
+}
 };
 
