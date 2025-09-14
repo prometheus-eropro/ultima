@@ -227,7 +227,8 @@ async function carregarClientes() {
     return data;
   } catch (err) {
     console.error("Erro ao buscar parceiros:", err);
-    document.querySelector("#lista-parceiros").innerHTML =
+    elGrid.innerHTML = "<p>Erro ao carregar. Tente novamente mais tarde.</p>";
+
       "<p>Erro ao carregar. Tente novamente mais tarde.</p>";
     return [];
   }

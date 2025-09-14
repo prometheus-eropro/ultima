@@ -12,7 +12,8 @@ import salvarparceiro from "./salvarparceiro.js";
 import consulta from "./consulta.js";
 import health from "./health.js";
 
-export default async function handler(req, res) {
+export default function handler(req, res) {
+
   try {
     const { tabela } = req.query;
 
