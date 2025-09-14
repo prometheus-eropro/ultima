@@ -2,16 +2,15 @@
 // Gateway central para redirecionar as requisições para cada módulo.
 // ⚠️ Importante: todos os arquivos devem estar em /pages/api/ para o Vercel reconhecer como rota de API.
 
-import clientes from "./clientes.js";
-import parceiros from "./parceiros.js";
-import beneficios from "./beneficios.js";
-import promocoes from "./promocoes.js";
-import depoimentos from "./depoimentos.js";
-import log from "./log.js";
-import salvarparceiro from "./salvarparceiro.js";
-import consulta from "./consulta.js";
-import health from "./health.js";
-
+import clientes from "./clientes";
+import parceiros from "./parceiros";
+import beneficios from "./beneficios";
+import promocoes from "./promocoes";
+import depoimentos from "./depoimentos";
+import log from "./log";
+import salvarparceiro from "./salvarparceiro";
+import consulta from "./consulta";
+import health from "./health";
 export default function handler(req, res) {
 
   try {
