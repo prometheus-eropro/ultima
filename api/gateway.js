@@ -1,5 +1,5 @@
 // /api/gateway.js
-module.exports = async (req, res) => {
+export default async function handler(req, res) {
   try {
     if (req.method !== 'GET') {
       return res.status(405).json({ error: 'Method not allowed' });
@@ -66,11 +66,11 @@ module.exports = async (req, res) => {
       });
     }
   } catch (error) {
-    console.error('Erro interno:', error); // Vai aparecer no log da Vercel
+    console.error('Erro interno:', error);
     return res.status(500).json({
       code: '500',
       message: 'A server error has occurred',
       details: error.message
     });
   }
-};
+}
