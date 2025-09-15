@@ -165,65 +165,56 @@ body, p, li, span {
   const id = params.get("id"); // ?id=APV-xxxxx
   if (!id) return;
 
-  // 1) Carrega todos os clientes e filtra pelo idPublico no front
-const r = await fetch('/api/gateway?tabela=clientes');
-if (!r.ok) return;
-let r = await fetch(...); // primeira vez
+  // 1) Carrega todos os clientes
+  let r = await fetch('/api/gateway?tabela=clientes');
+  if (!r.ok) {
+    console.error("Erro ao buscar clientes:", r.status);
+    alert("Erro ao carregar clientes. Tente novamente mais tarde.");
+    return;
+  }
+  const data = await r.json();
 
-// depois, em outra parte:
-r = await fetch(...); // sem 'const' ou 'let', só reatribuição
+  if (!Array.isArray(data.records)) {
+    console.error("Resposta inesperada da API:", data);
+    alert("Erro ao carregar dados do cliente. Tente novamente mais tarde.");
+    return;
+  }
 
-const data = await r.json();
+  console.log("Resposta da API /clientes:", data.records);
 
-if (!Array.isArray(data.records)) {
-  console.error("Erro na resposta da API /clientes:", data);
-  alert("Erro ao carregar dados do cliente. Tente novamente mais tarde.");
-  return;
-}
+  // 2) Localiza o cliente pelo idPublico
+  const c = data.records.find(x => (x.fields.idPublico || "").toUpperCase() === id.toUpperCase());
+  if (!c) {
+    alert("Cliente não encontrado.");
+    return;
+  }
 
-console.log("Resposta da API /clientes:", data.records);
+  const fields = c.fields;
+  document.getElementById("nome").textContent = fields.nome || "";
+  document.getElementById("cidade").textContent = fields.cidade || "";
+  document.getElementById("grupo").textContent = fields.grupo || "";
+  document.getElementById("idPublico").textContent = fields.idPublico || "";
+  document.getElementById("cpf").textContent = fields.cpf || "";
+  document.getElementById("celular").textContent = fields.celular || "";
+  document.getElementById("dataCadastro").textContent = (fields.dataCadastro || "").split("T")[0] || "";
 
-const c = data.records.find(x => (x.fields.idPublico || "").toUpperCase() === id.toUpperCase());
-if (!c) {
-  alert("Cliente não encontrado.");
-  return;
-}
-
-const fields = c.fields;
-document.getElementById("nome").textContent = fields.nome || "";
-document.getElementById("cidade").textContent = fields.cidade || "";
-document.getElementById("grupo").textContent = fields.grupo || "";
-document.getElementById("idPublico").textContent = fields.idPublico || "";
-document.getElementById("cpf").textContent = fields.cpf || "";
-document.getElementById("celular").textContent = fields.celular || "";
-document.getElementById("dataCadastro").textContent = (fields.dataCadastro || "").split("T")[0] || "";
-
-  if (!c) return;
-
-  // 2) Preenche dados básicos
-  document.getElementById("nome").textContent = c.nome || "";
-  document.getElementById("cidade").textContent = c.cidade || "";
-  document.getElementById("grupo").textContent = c.grupo || "";
-  document.getElementById("idPublico").textContent = c.idPublico || "";
-  document.getElementById("cpf").textContent = c.cpf || "";
-  document.getElementById("celular").textContent = c.celular || "";
-  document.getElementById("dataCadastro").textContent = (c.dataCadastro || "").split("T")[0] || "";
-
-  // 3) Benefícios gerais + exclusivos (opcional, se quiser popular as listas)
+  // 3) Carrega benefícios e promoções
   try {
-const [bRes, pRes] = await Promise.all([
-  fetch("/api/gateway?tabela=beneficios"),
-  fetch("/api/gateway?tabela=promocoes"),
-]);
-    const [beneficios, promocoes] = await Promise.all([bRes.json(), pRes.json()]);
+    const [bRes, pRes] = await Promise.all([
+      fetch("/api/gateway?tabela=beneficios"),
+      fetch("/api/gateway?tabela=promocoes"),
+    ]);
+    const [beneficiosData, promocoesData] = await Promise.all([bRes.json(), pRes.json()]);
+
+    const beneficios = beneficiosData.records?.map(x => x.fields) || [];
+    const promocoes = promocoesData.records?.map(x => x.fields) || [];
 
     const ulBG = document.getElementById("beneficiosGerais");
     const ulBE = document.getElementById("beneficiosExclusivos");
     beneficios.forEach(b => {
       const li = document.createElement("li");
       li.textContent = b.titulo ? `${b.titulo} — ${b.descricao || ""}` : (b.descricao || "");
-      // Se tiver campo "grupo" e combinar com o grupo do cliente, trata como exclusivo
-      (b.grupo && c.grupo && b.grupo.toLowerCase() === c.grupo.toLowerCase() ? ulBE : ulBG).appendChild(li);
+      (b.grupo && fields.grupo && b.grupo.toLowerCase() === fields.grupo.toLowerCase() ? ulBE : ulBG).appendChild(li);
     });
 
     const ulPG = document.getElementById("promocoesGerais");
@@ -232,28 +223,12 @@ const [bRes, pRes] = await Promise.all([
       const li = document.createElement("li");
       const periodo = [p.dataInicio, p.dataFim].filter(Boolean).join(" → ");
       li.textContent = p.titulo ? `${p.titulo} — ${p.descricao || ""} ${periodo ? `(${periodo})` : ""}` : (p.descricao || "");
-      (p.grupo && c.grupo && p.grupo.toLowerCase() === c.grupo.toLowerCase() ? ulPE : ulPG).appendChild(li);
+      (p.grupo && fields.grupo && p.grupo.toLowerCase() === fields.grupo.toLowerCase() ? ulPE : ulPG).appendChild(li);
     });
   } catch (e) {
-    // Se der ruim nas listas, o painel básico continua funcionando
     console.warn("Falha ao carregar benefícios/promos:", e);
   }
 })();
-
-// ações dos botões
-function verCartao() {
-  const id = document.getElementById("idPublico").textContent.trim();
-  if (!id) return;
-  location.href = `cartao.html?id=${encodeURIComponent(id)}`;
-}
-function enviarWhatsapp() {
-  const nome = document.getElementById("nome").textContent || "";
-  const id = document.getElementById("idPublico").textContent || "";
-  const texto = `Olá! Gostaria de alterar meus dados do Cartão AproveitAI.%0A%0ANome: ${nome}%0AID: ${id}`;
-  window.open(`https://wa.me/5528999692303?text=${texto}`, "_blank");
-}
-
-
 </script>
 
 <button id="voltar-fixo" onclick="window.history.back()">⬅️ Voltar</button>
