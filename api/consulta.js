@@ -17,6 +17,7 @@ export default async function handler(req, res) {
       const apiKey = process.env.AIRTABLE_API_KEY;
 
       const url = `https://api.airtable.com/v0/${baseId}/${tabela}?filterByFormula=AND({cnpj}='${cnpj}', {token}='${token}')`;
+console.log("Resposta do Airtable:", records);
 
       const resposta = await fetch(url, {
         headers: {
