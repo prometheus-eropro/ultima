@@ -116,6 +116,7 @@ body, html {
       Falar com Suporte no WhatsApp
     </button>
   </a>
+  </div>
 </div>
 
 <script>
@@ -125,14 +126,18 @@ async function buscarParceiro(cnpj, token) {
   const resp = await fetch('/api/consulta?tipo=parceirosLogin', {
     method: 'POST',
     headers: { 'Content-Type':'application/json' },
-    body: JSON.stringify({ cnpj: sanitizeCNPJ(cnpj), token: (token||"").trim() })
+    body: JSON.stringify({
+      cnpj: sanitizeCNPJ(cnpj),
+      token: (token||"").trim()
+    })
   });
+
   if (!resp.ok) {
-    if (resp.status === 401) return null;          // credenciais inválidas
-    if (resp.status === 423) return "inativo";      // parceiro inativo
+    if (resp.status === 401) return null;     // credenciais inválidas
+    if (resp.status === 423) return "inativo"; // parceiro inativo
     throw new Error('Falha no servidor');
   }
-  return await resp.json(); // {nome, cnpj, grupo, idPublico, logoUrl, whatsapp, instagram}
+  return await resp.json();
 }
 
 async function entrarPainel() {
@@ -140,14 +145,12 @@ async function entrarPainel() {
   const cnpj = document.getElementById('cnpj').value;
   const token = document.getElementById('token').value;
 
-  // Validação rápida de CNPJ: 14 dígitos
   const cnpjNum = sanitizeCNPJ(cnpj);
   if (!cnpjNum || cnpjNum.length !== 14 || !token) {
     alert('Preencha CNPJ (14 dígitos) e token.');
     return;
   }
 
-  // feedback de carregamento
   const textoOriginal = btn.textContent;
   btn.disabled = true; btn.textContent = 'Validando...';
 
@@ -163,13 +166,11 @@ async function entrarPainel() {
       return;
     }
 
-    // Armazene só o necessário, por sessão
     sessionStorage.setItem("cnpjParceiro", parceiro.cnpj);
     sessionStorage.setItem("nomeParceiro", parceiro.nome);
     sessionStorage.setItem("whatsapp", parceiro.whatsapp || "");
     sessionStorage.setItem("instagram", parceiro.instagram || "");
 
-    // Redireciona
     window.location.href = "paineldoparceiro.html";
   } catch (e) {
     console.error(e);
@@ -178,29 +179,8 @@ async function entrarPainel() {
     btn.disabled = false; btn.textContent = textoOriginal;
   }
 }
-fetch('/api/gateway?tabela=parceiros')
-<!-- areadoparceiro.html (JS interno ou externo) -->
-<script>
-async function validarLoginParceiro(event) {
-  event.preventDefault();
-
-  const cnpj = document.getElementById('cnpj').value;
-  const token = document.getElementById('token').value;
-
-  try {
-    if (json.status === 'ok') {
-      alert('Login aprovado!');
-      window.location.href = 'paineldoparceiro.html';
-    } else {
-      alert('Login inválido. Verifique os dados.');
-    }
-  } catch (erro) {
-    console.error('Erro na validação:', erro);
-    alert('Erro na conexão. Tente novamente.');
-  }
-}
 </script>
-<script src="script.js"></script>
+
 <button id="voltar-fixo" onclick="window.history.back()">⬅️ Voltar</button>
 </body>
 </html>
