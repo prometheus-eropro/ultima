@@ -162,11 +162,14 @@ body, p, li, span {
 <script>
 (async () => {
   const params = new URLSearchParams(location.search);
-  const id = params.get("id"); // ?id=APV-xxxxx
+  const id = params.get("id"); // ?id=APV-xxxxx-xxxxx
   if (!id) return;
 
   // 1) Carrega todos os clientes e filtra pelo idPublico no front
-const r = await fetch('/api/gateway?tabela=clientes');
+const clienteRes = await fetch('/api/gateway?tabela=clientes');
+if (!clienteRes.ok) return;
+const data = await clienteRes.json();
+
 if (!r.ok) return;
 const data = await r.json();
 
@@ -238,18 +241,7 @@ function enviarWhatsapp() {
   const texto = `Olá! Gostaria de alterar meus dados do Cartão AproveitAI.%0A%0ANome: ${nome}%0AID: ${id}`;
   window.open(`https://wa.me/5528999692303?text=${texto}`, "_blank");
 }
-
-
 </script>
-
 <button id="voltar-fixo" onclick="window.history.back()">⬅️ Voltar</button>
-
-
 </body>
 </html>
-
-
-
-
-
-
