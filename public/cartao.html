@@ -132,12 +132,10 @@
       document.getElementById("cidade").textContent = fields.cidade || "-";
       document.getElementById("dataCadastro").textContent = (fields.dataCadastro || "").split("T")[0] || "-";
 
-      // Gera o QR Code com link de verificação
-document.getElementById("qrImg").src = `https://api.qrserver.com/v1/create-qr-code/?data=${idCliente}&size=150x150`;
+// Gera o QR Code com link de verificação
+const qrImg = document.getElementById("qrImg");
+qrImg.src = `https://chart.googleapis.com/chart?cht=qr&chl=${window.location.origin}/cartao.html?id=${encodeURIComponent(id)}&chs=200x200&chld=L|0`;
 
-      const qrImg = document.getElementById("qrImg");
-      qrImg.src = `https://chart.googleapis.com/chart?cht=qr&chl=https://www.aproveitai.com.br/cartao.html?id=${encodeURIComponent(id)}&chs=200x200&chld=L|0`;
-     qrImg.src = `https://chart.googleapis.com/chart?cht=qr&chl=${window.location.origin}/cartao.html?id=${encodeURIComponent(id)}&chs=200x200&chld=L|0`;
     })();
   </script>
 </body>
