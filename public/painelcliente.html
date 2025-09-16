@@ -204,13 +204,16 @@ body, p, li, span {
       const ulBenefGerais = document.getElementById("beneficiosGerais");
       const ulBenefExclusivos = document.getElementById("beneficiosExclusivos");
 
-      beneficios.forEach(beneficio => {
+      beneficios.forEach((item) => {
         const li = document.createElement("li");
-        li.textContent = beneficio.titulo ? `${beneficio.titulo} — ${beneficio.descricao || ""}` : (beneficio.descricao || "");
+        li.textContent = item.fields.titulo
+          ? `${item.fields.titulo} — ${item.fields.descricao || ""}`
+          : item.fields.descricao || "";
+
         if (
-          beneficio.grupo &&
+          item.fields.grupo &&
           fields.grupo &&
-          beneficio.grupo.toLowerCase() === fields.grupo.toLowerCase()
+          item.fields.grupo.toLowerCase() === fields.grupo.toLowerCase()
         ) {
           ulBenefExclusivos.appendChild(li);
         } else {
@@ -221,14 +224,17 @@ body, p, li, span {
       const ulPromoGerais = document.getElementById("promocoesGerais");
       const ulPromoExclusivas = document.getElementById("promocoesExclusivas");
 
-      promocoes.forEach(promo => {
+      promocoes.forEach((item) => {
         const li = document.createElement("li");
-        const periodo = [promo.dataInicio, promo.dataFim].filter(Boolean).join(" → ");
-        li.textContent = promo.titulo ? `${promo.titulo} — ${promo.descricao || ""} ${periodo ? `(${periodo})` : ""}` : (promo.descricao || "");
+        const periodo = [item.fields.dataInicio, item.fields.dataFim].filter(Boolean).join(" → ");
+        li.textContent = item.fields.titulo
+          ? `${item.fields.titulo} — ${item.fields.descricao || ""} ${periodo ? `(${periodo})` : ""}`
+          : item.fields.descricao || "";
+
         if (
-          promo.grupo &&
+          item.fields.grupo &&
           fields.grupo &&
-          promo.grupo.toLowerCase() === fields.grupo.toLowerCase()
+          item.fields.grupo.toLowerCase() === fields.grupo.toLowerCase()
         ) {
           ulPromoExclusivas.appendChild(li);
         } else {
