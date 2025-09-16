@@ -205,42 +205,41 @@ body, p, li, span {
       const ulBenefExclusivos = document.getElementById("beneficiosExclusivos");
 
       beneficios.forEach((item) => {
-        const li = document.createElement("li");
-        li.textContent = item.fields.titulo
-          ? `${item.fields.titulo} — ${item.fields.descricao || ""}`
-          : item.fields.descricao || "";
+  const li = document.createElement("li");
+  const parceiro = item.fields.parceiro ? ` — 🏪 ${item.fields.parceiro}` : "";
+  li.textContent = item.fields.titulo
+    ? `${item.fields.titulo} — ${item.fields.descricao || ""}${parceiro}`
+    : `${item.fields.descricao || ""}${parceiro}`;
 
-        if (
-          item.fields.grupo &&
-          fields.grupo &&
-          item.fields.grupo.toLowerCase() === fields.grupo.toLowerCase()
-        ) {
-          ulBenefExclusivos.appendChild(li);
-        } else {
-          ulBenefGerais.appendChild(li);
-        }
-      });
+  if (
+    item.fields.grupo &&
+    fields.grupo &&
+    item.fields.grupo.toLowerCase() === fields.grupo.toLowerCase()
+  ) {
+    ulBenefExclusivos.appendChild(li);
+  } else {
+    ulBenefGerais.appendChild(li);
+  }
+});
 
-      const ulPromoGerais = document.getElementById("promocoesGerais");
-      const ulPromoExclusivas = document.getElementById("promocoesExclusivas");
+promocoes.forEach((item) => {
+  const li = document.createElement("li");
+  const periodo = [item.fields.dataInicio, item.fields.dataFim].filter(Boolean).join(" → ");
+  const parceiro = item.fields.parceiro ? ` — 🏪 ${item.fields.parceiro}` : "";
+  li.textContent = item.fields.titulo
+    ? `${item.fields.titulo} — ${item.fields.descricao || ""} ${periodo ? `(${periodo})` : ""}${parceiro}`
+    : `${item.fields.descricao || ""} ${periodo ? `(${periodo})` : ""}${parceiro}`;
 
-      promocoes.forEach((item) => {
-        const li = document.createElement("li");
-        const periodo = [item.fields.dataInicio, item.fields.dataFim].filter(Boolean).join(" → ");
-        li.textContent = item.fields.titulo
-          ? `${item.fields.titulo} — ${item.fields.descricao || ""} ${periodo ? `(${periodo})` : ""}`
-          : item.fields.descricao || "";
-
-        if (
-          item.fields.grupo &&
-          fields.grupo &&
-          item.fields.grupo.toLowerCase() === fields.grupo.toLowerCase()
-        ) {
-          ulPromoExclusivas.appendChild(li);
-        } else {
-          ulPromoGerais.appendChild(li);
-        }
-      });
+  if (
+    item.fields.grupo &&
+    fields.grupo &&
+    item.fields.grupo.toLowerCase() === fields.grupo.toLowerCase()
+  ) {
+    ulPromoExclusivas.appendChild(li);
+  } else {
+    ulPromoGerais.appendChild(li);
+  }
+});
     } catch (erro) {
       console.warn("Erro ao carregar benefícios ou promoções:", erro);
     }
