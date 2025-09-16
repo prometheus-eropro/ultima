@@ -168,8 +168,6 @@ body, p, li, span {
   // 1) Carrega todos os clientes e filtra pelo idPublico no front
 const r = await fetch('/api/gateway?tabela=clientes');
 if (!r.ok) return;
-const r = await fetch('/api/gateway?tabela=clientes');
-if (!r.ok) return;
 const data = await r.json();
 
 if (!Array.isArray(data.records)) {
