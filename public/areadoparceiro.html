@@ -22,7 +22,6 @@
 }
 
 
-
 body, html {
   min-height: 100vh;
   display: flex;
@@ -149,6 +148,16 @@ async function entrarPainel() {
   if (!cnpjNum || cnpjNum.length !== 14 || !token) {
     alert('Preencha CNPJ (14 dígitos) e token.');
     return;
+if (parceiro.status !== "ok") {
+  alert("CNPJ ou Token inválidos.");
+  return;
+}
+const dados = parceiro.parceiro; // <- pega os fields
+sessionStorage.setItem("cnpjParceiro", dados.cnpj);
+sessionStorage.setItem("nomeParceiro", dados.nome || dados.parceiro);
+sessionStorage.setItem("whatsapp", dados.whatsapp || "");
+sessionStorage.setItem("instagram", dados.instagram || "");
+
   }
 
   const textoOriginal = btn.textContent;

@@ -38,3 +38,7 @@ export default async function handler(req, res) {
     res.status(400).json({ status: 'erro', mensagem: 'Tipo inválido' });
   }
 }
+if (dados.records && dados.records.length > 0) {
+  return res.status(200).json(dados.records[0].fields);
+}
+const url = `https://api.airtable.com/v0/${baseId}/${tabela}?filterByFormula=AND({cnpj}='${cnpj}', {token}='${token}', {ativo}=1)`;
