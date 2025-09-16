@@ -123,7 +123,6 @@ function sanitizeCNPJ(v){ return (v||"").replace(/\D/g,""); }
 
 async function buscarParceiro(cnpj, token) {
   const resp = await fetch('/api/consulta?tipo=parceirosLogin', {
-
     method: 'POST',
     headers: { 'Content-Type':'application/json' },
     body: JSON.stringify({ cnpj: sanitizeCNPJ(cnpj), token: (token||"").trim() })
@@ -189,9 +188,6 @@ async function validarLoginParceiro(event) {
   const token = document.getElementById('token').value;
 
   try {
-    const res = await fetch(`/api/consulta?tipo=parceirosLogin&cnpj=${cnpj}&token=${token}`);
-    const json = await res.json();
-
     if (json.status === 'ok') {
       alert('Login aprovado!');
       window.location.href = 'paineldoparceiro.html';
@@ -203,8 +199,6 @@ async function validarLoginParceiro(event) {
     alert('Erro na conexão. Tente novamente.');
   }
 }
-</script>
-
 </script>
 <script src="script.js"></script>
 <button id="voltar-fixo" onclick="window.history.back()">⬅️ Voltar</button>
