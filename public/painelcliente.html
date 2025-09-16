@@ -162,10 +162,9 @@ body, p, li, span {
 <script>
 (async () => {
   const params = new URLSearchParams(location.search);
-  const id = params.get("id"); // ?id=APV-xxxxx-xxxxx
+  const id = params.get("id");
   if (!id) return;
 
-  // 1) Carrega todos os clientes e filtra pelo idPublico no front
   const clienteRes = await fetch('/api/gateway?tabela=clientes');
   if (!clienteRes.ok) return;
   const clienteData = await clienteRes.json();
@@ -175,8 +174,6 @@ body, p, li, span {
     alert("Erro ao carregar dados do cliente. Tente novamente mais tarde.");
     return;
   }
-
-  console.log("Resposta da API /clientes:", clienteData.records);
 
   const c = clienteData.records.find(x => (x.fields.idPublico || "").toUpperCase() === id.toUpperCase());
   if (!c) {
@@ -193,23 +190,23 @@ body, p, li, span {
   document.getElementById("celular").textContent = fields.celular || "";
   document.getElementById("dataCadastro").textContent = (fields.dataCadastro || "").split("T")[0] || "";
 
-  // 3) Benefícios gerais + exclusivos (opcional, se quiser popular as listas)
   try {
     const [bRes, pRes] = await Promise.all([
       fetch("/api/gateway?tabela=beneficios"),
       fetch("/api/gateway?tabela=promocoes"),
     ]);
-    const [beneficiosData, promocoesData] = await Promise.all([bRes.json(), pRes.json()]);
-const beneficios = beneficiosData.records || [];
-const promocoes = promocoesData.records || [];
+    const beneficiosData = await bRes.json();
+    const promocoesData = await pRes.json();
 
+    const beneficios = Array.isArray(beneficiosData.records) ? beneficiosData.records : [];
+    const promocoes = Array.isArray(promocoesData.records) ? promocoesData.records : [];
 
     const ulBG = document.getElementById("beneficiosGerais");
     const ulBE = document.getElementById("beneficiosExclusivos");
     beneficios.forEach(b => {
       const li = document.createElement("li");
       li.textContent = b.titulo ? `${b.titulo} — ${b.descricao || ""}` : (b.descricao || "");
-      (b.grupo && c.grupo && b.grupo.toLowerCase() === c.grupo.toLowerCase() ? ulBE : ulBG).appendChild(li);
+      (b.grupo && c.fields.grupo && b.grupo.toLowerCase() === c.fields.grupo.toLowerCase() ? ulBE : ulBG).appendChild(li);
     });
 
     const ulPG = document.getElementById("promocoesGerais");
@@ -218,14 +215,15 @@ const promocoes = promocoesData.records || [];
       const li = document.createElement("li");
       const periodo = [p.dataInicio, p.dataFim].filter(Boolean).join(" → ");
       li.textContent = p.titulo ? `${p.titulo} — ${p.descricao || ""} ${periodo ? `(${periodo})` : ""}` : (p.descricao || "");
-      (p.grupo && c.grupo && p.grupo.toLowerCase() === c.grupo.toLowerCase() ? ulPE : ulPG).appendChild(li);
+      (p.grupo && c.fields.grupo && p.grupo.toLowerCase() === c.fields.grupo.toLowerCase() ? ulPE : ulPG).appendChild(li);
     });
+
   } catch (e) {
     console.warn("Falha ao carregar benefícios/promos:", e);
   }
 })();
 
-// ações dos botões
+// Apenas uma versão da função verCartao
 function verCartao() {
   const id = document.getElementById("idPublico").textContent.trim();
   if (!id) return;
@@ -238,12 +236,8 @@ function enviarWhatsapp() {
   const texto = `Olá! Gostaria de alterar meus dados do Cartão AproveitAI.%0A%0ANome: ${nome}%0AID: ${id}`;
   window.open(`https://wa.me/5528999692303?text=${texto}`, "_blank");
 }
-function verCartao() {
-  const id = new URLSearchParams(window.location.search).get("id");
-  window.location.href = `cartao.html?id=${id}`;
-}
-
 </script>
+
 <button id="voltar-fixo" onclick="window.history.back()">⬅️ Voltar</button>
 </body>
 </html>
