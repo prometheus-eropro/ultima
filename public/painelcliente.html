@@ -199,7 +199,10 @@ body, p, li, span {
       fetch("/api/gateway?tabela=beneficios"),
       fetch("/api/gateway?tabela=promocoes"),
     ]);
-    const [beneficios, promocoes] = await Promise.all([bRes.json(), pRes.json()]);
+    const [beneficiosData, promocoesData] = await Promise.all([bRes.json(), pRes.json()]);
+const beneficios = beneficiosData.records || [];
+const promocoes = promocoesData.records || [];
+
 
     const ulBG = document.getElementById("beneficiosGerais");
     const ulBE = document.getElementById("beneficiosExclusivos");

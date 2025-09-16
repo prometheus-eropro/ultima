@@ -131,70 +131,73 @@
     z-index: 999;
   ">⬅ Voltar</button>
 
-  <script>
-    const idPublico = new URLSearchParams(window.location.search).get('id');
+<script>
+  const idPublico = new URLSearchParams(window.location.search).get('id');
 
-    async function buscarClienteSeguro(id) {
-      const r = await fetch(`/api/cartao?id=${encodeURIComponent(id)}`);
-      if (!r.ok) throw new Error("Nenhum ID encontrado.");
-      return await r.json();
-    }
+  async function buscarClientePorID(id) {
+    const resposta = await fetch("/api/gateway?tabela=clientes");
+    if (!resposta.ok) throw new Error("Erro ao buscar clientes.");
 
-    function formatarData(dataString) {
-      if (!dataString) return '-';
-      const data = new Date(dataString);
-      return isNaN(data) ? '-' : data.toLocaleDateString('pt-BR');
-    }
+    const data = await resposta.json();
+    const cliente = data.records.find(x => (x.fields.idPublico || "").toUpperCase() === id.toUpperCase());
 
-    async function montarCartao() {
-      try {
-        const cliente = await buscarClienteSeguro(idPublico);
+    if (!cliente) throw new Error("Nenhum ID encontrado.");
 
-        document.title = `Cartão - ${cliente.nome ?? 'AproveitAI'}`;
-        document.getElementById('nome').textContent = cliente.nome ?? '-';
-        document.getElementById('idPublico').textContent = cliente.idPublico ?? '-';
-        document.getElementById('grupo').textContent = cliente.grupo ?? '-';
-        document.getElementById('cidade').textContent = cliente.cidade ?? '-';
-        document.getElementById('dataCadastro').textContent = formatarData(cliente.dataCadastro);
-        document.getElementById('qrImg').src = cliente.qrURL || '';
+    return cliente.fields;
+  }
 
-        const botaoAcao = document.getElementById("acaoBtn");
+  function formatarData(dataString) {
+    if (!dataString) return '-';
+    const data = new Date(dataString);
+    return isNaN(data) ? '-' : data.toLocaleDateString('pt-BR');
+  }
 
-        if ((cliente.ativo || '').toLowerCase() === 'sim') {
-          botaoAcao.textContent = "Salvar Cartão (PDF)";
-          botaoAcao.onclick = () => window.print();
-          botaoAcao.style.background = "#333";
-        } else {
-          const zapURL = `https://wa.me/5528999692303?text=${encodeURIComponent(
-            `Olá, gostaria de concluir o cadastro do meu Cartão AproveitAI. Meu ID é ${cliente.idPublico}.`
-          )}`;
-          botaoAcao.textContent = "Concluir cadastro via WhatsApp";
-          botaoAcao.onclick = () => window.open(zapURL, "_blank");
-          botaoAcao.style.background = "#0a7f2e";
-        }
+  async function montarCartao() {
+    try {
+      const cliente = await buscarClientePorID(idPublico);
 
-        botaoAcao.style.display = "inline-block";
-        document.getElementById("salvarImgBtn").style.display = "inline-block";
+      document.title = `Cartão - ${cliente.nome ?? 'AproveitAI'}`;
+      document.getElementById('nome').textContent = cliente.nome ?? '-';
+      document.getElementById('idPublico').textContent = cliente.idPublico ?? '-';
+      document.getElementById('grupo').textContent = cliente.grupo ?? '-';
+      document.getElementById('cidade').textContent = cliente.cidade ?? '-';
+      document.getElementById('dataCadastro').textContent = formatarData(cliente.dataCadastro);
+      document.getElementById('qrImg').src = cliente.qrURL || '';
 
-      } catch (error) {
-        alert(error.message);
+      const botaoAcao = document.getElementById("acaoBtn");
+
+      if ((cliente.ativo || '').toLowerCase() === 'sim') {
+        botaoAcao.textContent = "Salvar Cartão (PDF)";
+        botaoAcao.onclick = () => window.print();
+        botaoAcao.style.background = "#333";
+      } else {
+        const zapURL = `https://wa.me/5528999692303?text=${encodeURIComponent(
+          `Olá, gostaria de concluir o cadastro do meu Cartão AproveitAI. Meu ID é ${cliente.idPublico}.`
+        )}`;
+        botaoAcao.textContent = "Concluir cadastro via WhatsApp";
+        botaoAcao.onclick = () => window.open(zapURL, "_blank");
+        botaoAcao.style.background = "#0a7f2e";
       }
+
+      botaoAcao.style.display = "inline-block";
+      document.getElementById("salvarImgBtn").style.display = "inline-block";
+
+    } catch (error) {
+      alert(error.message);
     }
+  }
 
-    montarCartao();
+  montarCartao();
 
-    document.getElementById("salvarImgBtn").onclick = () => {
-      const idAtual = (document.getElementById("idPublico").textContent || "aproveitai").trim();
-      html2canvas(document.getElementById("cardArea")).then(canvas => {
-        const link = document.createElement("a");
-        link.download = `cartao-aproveitai-${idAtual}.png`;
-        link.href = canvas.toDataURL("image/png");
-        link.click();
-      });
-    };
-fetch("/api/gateway?tabela=clientes")
-
-  
+  document.getElementById("salvarImgBtn").onclick = () => {
+    const idAtual = (document.getElementById("idPublico").textContent || "aproveitai").trim();
+    html2canvas(document.getElementById("cardArea")).then(canvas => {
+      const link = document.createElement("a");
+      link.download = `cartao-aproveitai-${idAtual}.png`;
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+    });
+  };
 </script>
 
 </body>
