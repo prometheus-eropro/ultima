@@ -238,6 +238,11 @@ function enviarWhatsapp() {
   const texto = `Olá! Gostaria de alterar meus dados do Cartão AproveitAI.%0A%0ANome: ${nome}%0AID: ${id}`;
   window.open(`https://wa.me/5528999692303?text=${texto}`, "_blank");
 }
+function verCartao() {
+  const id = new URLSearchParams(window.location.search).get("id");
+  window.location.href = `cartao.html?id=${id}`;
+}
+
 </script>
 <button id="voltar-fixo" onclick="window.history.back()">⬅️ Voltar</button>
 </body>
