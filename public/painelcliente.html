@@ -195,15 +195,6 @@ document.getElementById("dataCadastro").textContent = (fields.dataCadastro || ""
 
   if (!c) return;
 
-  // 2) Preenche dados básicos
-  document.getElementById("nome").textContent = c.nome || "";
-  document.getElementById("cidade").textContent = c.cidade || "";
-  document.getElementById("grupo").textContent = c.grupo || "";
-  document.getElementById("idPublico").textContent = c.idPublico || "";
-  document.getElementById("cpf").textContent = c.cpf || "";
-  document.getElementById("celular").textContent = c.celular || "";
-  document.getElementById("dataCadastro").textContent = (c.dataCadastro || "").split("T")[0] || "";
-
   // 3) Benefícios gerais + exclusivos (opcional, se quiser popular as listas)
   try {
 const [bRes, pRes] = await Promise.all([
