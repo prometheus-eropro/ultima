@@ -166,44 +166,39 @@ body, p, li, span {
   if (!id) return;
 
   // 1) Carrega todos os clientes e filtra pelo idPublico no front
-const clienteRes = await fetch('/api/gateway?tabela=clientes');
-if (!clienteRes.ok) return;
-const data = await clienteRes.json();
+  const clienteRes = await fetch('/api/gateway?tabela=clientes');
+  if (!clienteRes.ok) return;
+  const clienteData = await clienteRes.json();
 
-if (!r.ok) return;
-const data = await r.json();
+  if (!Array.isArray(clienteData.records)) {
+    console.error("Erro na resposta da API /clientes:", clienteData);
+    alert("Erro ao carregar dados do cliente. Tente novamente mais tarde.");
+    return;
+  }
 
-if (!Array.isArray(data.records)) {
-  console.error("Erro na resposta da API /clientes:", data);
-  alert("Erro ao carregar dados do cliente. Tente novamente mais tarde.");
-  return;
-}
+  console.log("Resposta da API /clientes:", clienteData.records);
 
-console.log("Resposta da API /clientes:", data.records);
+  const c = clienteData.records.find(x => (x.fields.idPublico || "").toUpperCase() === id.toUpperCase());
+  if (!c) {
+    alert("Cliente não encontrado.");
+    return;
+  }
 
-const c = data.records.find(x => (x.fields.idPublico || "").toUpperCase() === id.toUpperCase());
-if (!c) {
-  alert("Cliente não encontrado.");
-  return;
-}
-
-const fields = c.fields;
-document.getElementById("nome").textContent = fields.nome || "";
-document.getElementById("cidade").textContent = fields.cidade || "";
-document.getElementById("grupo").textContent = fields.grupo || "";
-document.getElementById("idPublico").textContent = fields.idPublico || "";
-document.getElementById("cpf").textContent = fields.cpf || "";
-document.getElementById("celular").textContent = fields.celular || "";
-document.getElementById("dataCadastro").textContent = (fields.dataCadastro || "").split("T")[0] || "";
-
-  if (!c) return;
+  const fields = c.fields;
+  document.getElementById("nome").textContent = fields.nome || "";
+  document.getElementById("cidade").textContent = fields.cidade || "";
+  document.getElementById("grupo").textContent = fields.grupo || "";
+  document.getElementById("idPublico").textContent = fields.idPublico || "";
+  document.getElementById("cpf").textContent = fields.cpf || "";
+  document.getElementById("celular").textContent = fields.celular || "";
+  document.getElementById("dataCadastro").textContent = (fields.dataCadastro || "").split("T")[0] || "";
 
   // 3) Benefícios gerais + exclusivos (opcional, se quiser popular as listas)
   try {
-const [bRes, pRes] = await Promise.all([
-  fetch("/api/gateway?tabela=beneficios"),
-  fetch("/api/gateway?tabela=promocoes"),
-]);
+    const [bRes, pRes] = await Promise.all([
+      fetch("/api/gateway?tabela=beneficios"),
+      fetch("/api/gateway?tabela=promocoes"),
+    ]);
     const [beneficios, promocoes] = await Promise.all([bRes.json(), pRes.json()]);
 
     const ulBG = document.getElementById("beneficiosGerais");
@@ -211,7 +206,6 @@ const [bRes, pRes] = await Promise.all([
     beneficios.forEach(b => {
       const li = document.createElement("li");
       li.textContent = b.titulo ? `${b.titulo} — ${b.descricao || ""}` : (b.descricao || "");
-      // Se tiver campo "grupo" e combinar com o grupo do cliente, trata como exclusivo
       (b.grupo && c.grupo && b.grupo.toLowerCase() === c.grupo.toLowerCase() ? ulBE : ulBG).appendChild(li);
     });
 
@@ -224,7 +218,6 @@ const [bRes, pRes] = await Promise.all([
       (p.grupo && c.grupo && p.grupo.toLowerCase() === c.grupo.toLowerCase() ? ulPE : ulPG).appendChild(li);
     });
   } catch (e) {
-    // Se der ruim nas listas, o painel básico continua funcionando
     console.warn("Falha ao carregar benefícios/promos:", e);
   }
 })();
@@ -235,6 +228,7 @@ function verCartao() {
   if (!id) return;
   location.href = `cartao.html?id=${encodeURIComponent(id)}`;
 }
+
 function enviarWhatsapp() {
   const nome = document.getElementById("nome").textContent || "";
   const id = document.getElementById("idPublico").textContent || "";
