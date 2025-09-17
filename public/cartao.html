@@ -105,7 +105,7 @@
         <p>Apresente este cartão junto com documento oficial com foto.<br>O parceiro pode exigir identificação.</p>
         <p>
           Suporte: (28) 99969-2303<br>
-          Email: carta.aproveitai@gmail.com<br>
+          Email: cartao.aproveitai@gmail.com<br>
           Verifique em: <a href="https://www.aproveitai.com.br" target="_blank">www.aproveitai.com.br</a>
         </p>
       </div>
@@ -142,6 +142,7 @@ if (fields.qrURL && fields.qrURL.startsWith("http")) {
   const fallbackLink = `${window.location.origin}/cartao.html?id=${encodeURIComponent(id)}`;
   qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(fallbackLink)}`;
 }
+})(); // <-- esta linha fecha a função async imediatamente invocada
 
   </script>
 </body>
