@@ -1,119 +1,39 @@
+const Airtable = require('airtable');
+const base = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY }).base(process.env.AIRTABLE_BASE_ID);
+
 export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ status: "erro", mensagem: "Método não permitido" });
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Método não permitido' });
   }
 
-  const { tipo, cnpj, token, cpf, idPublico, statusCliente, nomeCliente, codigoAutorizacao, log_erros } = req.body;
+  const { documento } = req.body;
 
-  if (!tipo) {
-    return res.status(400).json({ status: "erro", mensagem: "Campo 'tipo' obrigatório" });
-  }
+  try {
+    const records = await base('clientes')
+      .select({
+        filterByFormula: `OR({cpf} = "${documento}", {idPublico} = "${documento}")`
+      })
+      .firstPage();
 
-  // ====================
-  // LOGIN PARCEIROS
-  // ====================
-  if (tipo === "parceirosLogin") {
-    try {
-      const baseId = process.env.AIRTABLE_BASE_ID;
-      const tabela = process.env.AIRTABLE_PARCEIROS;
-      const apiKey = process.env.AIRTABLE_API_KEY;
-
-      const formula = `AND({cnpj}="${cnpj}", {token}="${token}", {ativo}=1)`;
-      const url = `https://api.airtable.com/v0/${baseId}/${tabela}?filterByFormula=${encodeURIComponent(formula)}`;
-
-      const resposta = await fetch(url, { headers: { Authorization: `Bearer ${apiKey}` } });
-      const dados = await resposta.json();
-
-      if (dados.records?.length > 0) {
-        return res.status(200).json(dados.records[0].fields);
-      } else {
-        return res.status(401).json({ status: "erro", mensagem: "CNPJ ou Token inválidos" });
-      }
-    } catch (e) {
-      console.error("Erro interno parceirosLogin:", e);
-      return res.status(500).json({ status: "erro", mensagem: e.message });
+    if (records.length === 0) {
+      return res.status(404).json({ sucesso: false, mensagem: 'Cliente não encontrado' });
     }
-  }
 
-  // ====================
-  // VALIDAR CLIENTE
-  // ====================
-  if (tipo === "validarCliente") {
-    try {
-      const baseId = process.env.AIRTABLE_BASE_ID;
-      const tabela = process.env.AIRTABLE_CLIENTES;
-      const apiKey = process.env.AIRTABLE_API_KEY;
+    const cliente = records[0].fields;
 
-      let formula = "";
-      if (cpf && idPublico) {
-        formula = `OR({cpf}="${cpf}", {idPublico}="${idPublico}")`;
-      } else if (cpf) {
-        formula = `{cpf}="${cpf}"`;
-      } else if (idPublico) {
-        formula = `{idPublico}="${idPublico}"`;
-      } else {
-        return res.status(400).json({ status: "erro", mensagem: "Informe CPF ou ID Público" });
+    res.status(200).json({
+      sucesso: true,
+      cliente: {
+        nome: cliente.nome,
+        cpf: cliente.cpf,
+        idPublico: cliente.idPublico,
+        grupo: cliente.grupo,
+        celular: cliente.celular,
       }
+    });
 
-      const url = `https://api.airtable.com/v0/${baseId}/${tabela}?filterByFormula=${encodeURIComponent(formula)}`;
-      const resposta = await fetch(url, { headers: { Authorization: `Bearer ${apiKey}` } });
-      const dados = await resposta.json();
-
-      if (dados.records?.length > 0) {
-        return res.status(200).json({
-          sucesso: true,
-          cliente: dados.records[0].fields
-        });
-      } else {
-        return res.status(404).json({ status: "erro", mensagem: "Cliente não encontrado" });
-      }
-    } catch (e) {
-      console.error("Erro interno validarCliente:", e);
-      return res.status(500).json({ status: "erro", mensagem: e.message });
-    }
+  } catch (error) {
+    console.error('Erro consulta Airtable:', error);
+    res.status(500).json({ sucesso: false, mensagem: 'Erro na API de consulta', detalhe: error.message });
   }
-
-  // ====================
-  // LOG DE VALIDAÇÃO
-  // ====================
-  if (tipo === "logvalidacao") {
-    try {
-      const baseId = process.env.AIRTABLE_BASE_ID;
-      const tabela = process.env.AIRTABLE_LOGS;
-      const apiKey = process.env.AIRTABLE_API_KEY;
-
-      const resposta = await fetch(`https://api.airtable.com/v0/${baseId}/${tabela}`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          fields: {
-            Status: statusCliente,
-            NomeCliente: nomeCliente,
-            CodigoAutorizacao: codigoAutorizacao,
-            IdPublico: idPublico || "",
-            Erros: log_erros || ""
-          }
-        })
-      });
-
-      if (!resposta.ok) {
-        const txt = await resposta.text();
-        console.error("Erro Airtable log:", txt);
-        return res.status(500).json({ status: "erro", mensagem: "Falha ao salvar log" });
-      }
-
-      return res.status(200).json({ status: "ok" });
-    } catch (e) {
-      console.error("Erro interno logvalidacao:", e);
-      return res.status(500).json({ status: "erro", mensagem: e.message });
-    }
-  }
-
-  // ====================
-  // DEFAULT
-  // ====================
-  return res.status(400).json({ status: "erro", mensagem: "Tipo inválido ou não suportado" });
 }
