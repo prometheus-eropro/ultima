@@ -236,17 +236,17 @@ body, input, button, textarea {
 </div>
 
 <script>
-const nome = sessionStorage.getItem("nomeParceiro");
-const cnpj = sessionStorage.getItem("cnpjParceiro");
+const nomeParceiro = sessionStorage.getItem("nomeParceiro");
+const cnpjParceiro = sessionStorage.getItem("cnpjParceiro");
 
-// Se não tiver dados do parceiro na sessão, volta pro login
-if (!nome || !cnpj) {
+// Se não tiver dados do parceiro, volta pro login
+if (!nomeParceiro || !cnpjParceiro) {
   window.location.href = "areadoparceiro.html";
 }
 
 // Mostra o nome do parceiro no título
 document.getElementById("boasVindasTitulo").innerText =
-  `Bem-vindo, ${nome?.toUpperCase() || 'Parceiro'}!`;
+  `Bem-vindo, ${nomeParceiro?.toUpperCase() || 'Parceiro'}!`;
 
 // 🔍 Função para validar cliente
 async function consultarCliente() {
@@ -270,7 +270,7 @@ async function consultarCliente() {
     if (!r.ok || !data?.cliente) throw new Error("nao_encontrado");
 
     const f = data.cliente;
-    const nome = f.nome || 'Desconhecido';
+    const nomeCliente = f.nome || 'Desconhecido';
     const idPublico = f.idPublico || valor;
     const status = (f.ativo || "").toLowerCase() === "sim" ? "ativo" : "inativo";
     const cpfLimpo = (f.cpf || "").replace(/\D/g, "");
@@ -280,32 +280,51 @@ async function consultarCliente() {
     if (status === 'ativo') {
       const codigo = gerarCodigoAutorizacao();
       box.className = 'validado';
-      box.innerHTML = `✅ <strong>${nome}</strong><br>ID: ${idPublico}<br>CPF: ${cpfMask}<br>Data/Hora: ${agora}<br><strong>Código: ${codigo}</strong>`;
+      box.innerHTML = `✅ <strong>${nomeCliente}</strong><br>ID: ${idPublico}<br>CPF: ${cpfMask}<br>Data/Hora: ${agora}<br><strong>Código: ${codigo}</strong>`;
       
       // loga a validação
-      await fetch("/api/logvalidacao", {
+      await fetch("/api/consulta", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ statusCliente: 'ativo', nomeCliente: nome, codigoAutorizacao: codigo, idPublico })
+        body: JSON.stringify({
+          tipo: "logvalidacao",
+          statusCliente: 'ativo',
+          nomeCliente,
+          codigoAutorizacao: codigo,
+          idPublico
+        })
       });
     } else {
       box.className = 'invalido';
-      box.innerHTML = `❌ Cliente <strong>${nome}</strong> está inativo.<br>ID: ${idPublico}<br>CPF: ${cpfMask}<br>Data/Hora: ${agora}`;
+      box.innerHTML = `❌ Cliente <strong>${nomeCliente}</strong> está inativo.<br>ID: ${idPublico}<br>CPF: ${cpfMask}<br>Data/Hora: ${agora}`;
       
-      await fetch("/api/logvalidacao", {
+      await fetch("/api/consulta", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ statusCliente: 'inativo', nomeCliente: nome, codigoAutorizacao: '---', idPublico })
+        body: JSON.stringify({
+          tipo: "logvalidacao",
+          statusCliente: 'inativo',
+          nomeCliente,
+          codigoAutorizacao: '---',
+          idPublico
+        })
       });
     }
   } catch (e) {
     box.className = 'invalido';
     box.innerHTML = '❌ Cliente inválido ou não cadastrado.';
     
-    await fetch("/api/logvalidacao", {
+    await fetch("/api/consulta", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ statusCliente: 'erro', nomeCliente: 'Desconhecido', codigoAutorizacao: '---', idPublico: valor, log_erros: 'NAO_ENCONTRADO' })
+      body: JSON.stringify({
+        tipo: "logvalidacao",
+        statusCliente: 'erro',
+        nomeCliente: 'Desconhecido',
+        codigoAutorizacao: '---',
+        idPublico: valor,
+        log_erros: 'NAO_ENCONTRADO'
+      })
     });
   }
 }
@@ -344,6 +363,7 @@ function logout() {
   window.location.href = "areadoparceiro.html";
 }
 </script>
+
 
 <button id="voltar-fixo" onclick="window.history.back()">⬅️ Voltar</button>
 </body>
