@@ -223,17 +223,6 @@ if (!resp.ok) {
   alert("Erro ao cadastrar parceiro: " + erro);
   return;
 }
-const resposta = await fetch("/api/parceiros", {...});
-const resultado = await resposta.json();
-
-if (!resposta.ok) {
-  alert("Erro: " + resultado.error);
-  return;
-}
-
-alert(resultado.mensagem);
-
-
 // Após confirmação do cadastro
       const nome = form['nome'].value;
       const cnpj = form['cnpj'].value;
