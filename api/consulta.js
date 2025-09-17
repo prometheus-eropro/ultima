@@ -18,23 +18,13 @@ export default async function handler(req, res) {
       const tabela = process.env.AIRTABLE_PARCEIROS;
       const apiKey = process.env.AIRTABLE_API_KEY;
 
-      if (!baseId || !tabela || !apiKey) {
-        return res.status(500).json({ status: "erro", mensagem: "Configuração do servidor incompleta" });
-      }
-
       const formula = `AND({cnpj}="${cnpj}", {token}="${token}", {ativo}=1)`;
       const url = `https://api.airtable.com/v0/${baseId}/${tabela}?filterByFormula=${encodeURIComponent(formula)}`;
 
       const resposta = await fetch(url, { headers: { Authorization: `Bearer ${apiKey}` } });
-
-      if (!resposta.ok) {
-        const texto = await resposta.text();
-        console.error("Erro da Airtable:", texto);
-        return res.status(resposta.status).json({ status: "erro", mensagem: "Erro ao acessar Airtable" });
-      }
-
       const dados = await resposta.json();
-      if (dados.records && dados.records.length > 0) {
+
+      if (dados.records?.length > 0) {
         return res.status(200).json(dados.records[0].fields);
       } else {
         return res.status(401).json({ status: "erro", mensagem: "CNPJ ou Token inválidos" });
@@ -54,23 +44,22 @@ export default async function handler(req, res) {
       const tabela = process.env.AIRTABLE_CLIENTES;
       const apiKey = process.env.AIRTABLE_API_KEY;
 
-      if (!baseId || !tabela || !apiKey) {
-        return res.status(500).json({ status: "erro", mensagem: "Configuração do servidor incompleta" });
+      let formula = "";
+      if (cpf && idPublico) {
+        formula = `OR({cpf}="${cpf}", {idPublico}="${idPublico}")`;
+      } else if (cpf) {
+        formula = `{cpf}="${cpf}"`;
+      } else if (idPublico) {
+        formula = `{idPublico}="${idPublico}"`;
+      } else {
+        return res.status(400).json({ status: "erro", mensagem: "Informe CPF ou ID Público" });
       }
 
-      const formula = `OR({cpf}="${cpf}", {idPublico}="${idPublico || cpf}")`;
       const url = `https://api.airtable.com/v0/${baseId}/${tabela}?filterByFormula=${encodeURIComponent(formula)}`;
-
       const resposta = await fetch(url, { headers: { Authorization: `Bearer ${apiKey}` } });
-
-      if (!resposta.ok) {
-        const texto = await resposta.text();
-        console.error("Erro da Airtable validarCliente:", texto);
-        return res.status(resposta.status).json({ status: "erro", mensagem: "Erro ao acessar Airtable" });
-      }
-
       const dados = await resposta.json();
-      if (dados.records && dados.records.length > 0) {
+
+      if (dados.records?.length > 0) {
         return res.status(200).json({
           sucesso: true,
           cliente: dados.records[0].fields
@@ -104,7 +93,7 @@ export default async function handler(req, res) {
             Status: statusCliente,
             NomeCliente: nomeCliente,
             CodigoAutorizacao: codigoAutorizacao,
-            IdPublico: idPublico,
+            IdPublico: idPublico || "",
             Erros: log_erros || ""
           }
         })
