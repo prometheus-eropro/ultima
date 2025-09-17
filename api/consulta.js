@@ -51,30 +51,30 @@ export default async function handler(req, res) {
   if (tipo === "validarCliente") {
     try {
       const baseId = process.env.AIRTABLE_BASE_ID;
-      const tabela = process.env.AIRTABLE_CLIENTES; // defina no .env
+      const tabela = process.env.AIRTABLE_CLIENTES;
       const apiKey = process.env.AIRTABLE_API_KEY;
 
-      let formula;
-      if (cpf) {
-        formula = `OR({cpf}="${cpf}", {idPublico}="${cpf}")`;
-      } else if (idPublico) {
-        formula = `{idPublico}="${idPublico}"`;
-      } else {
-        return res.status(400).json({ status: "erro", mensagem: "CPF ou ID Público obrigatório" });
+      if (!baseId || !tabela || !apiKey) {
+        return res.status(500).json({ status: "erro", mensagem: "Configuração do servidor incompleta" });
       }
 
+      const formula = `OR({cpf}="${cpf}", {idPublico}="${idPublico || cpf}")`;
       const url = `https://api.airtable.com/v0/${baseId}/${tabela}?filterByFormula=${encodeURIComponent(formula)}`;
+
       const resposta = await fetch(url, { headers: { Authorization: `Bearer ${apiKey}` } });
 
       if (!resposta.ok) {
         const texto = await resposta.text();
-        console.error("Erro da Airtable:", texto);
+        console.error("Erro da Airtable validarCliente:", texto);
         return res.status(resposta.status).json({ status: "erro", mensagem: "Erro ao acessar Airtable" });
       }
 
       const dados = await resposta.json();
       if (dados.records && dados.records.length > 0) {
-        return res.status(200).json({ cliente: dados.records[0].fields });
+        return res.status(200).json({
+          sucesso: true,
+          cliente: dados.records[0].fields
+        });
       } else {
         return res.status(404).json({ status: "erro", mensagem: "Cliente não encontrado" });
       }
@@ -90,7 +90,7 @@ export default async function handler(req, res) {
   if (tipo === "logvalidacao") {
     try {
       const baseId = process.env.AIRTABLE_BASE_ID;
-      const tabela = process.env.AIRTABLE_LOGS; // defina no .env
+      const tabela = process.env.AIRTABLE_LOGS;
       const apiKey = process.env.AIRTABLE_API_KEY;
 
       const resposta = await fetch(`https://api.airtable.com/v0/${baseId}/${tabela}`, {
