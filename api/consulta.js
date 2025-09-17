@@ -14,8 +14,9 @@ export default async function handler(req, res) {
       const tabela = process.env.AIRTABLE_PARCEIROS;
       const apiKey = process.env.AIRTABLE_API_KEY;
 
-      // DEBUG: Mostra se algo está undefined
+      // 💬 PRINTA TUDO PRA VER O QUE VEIO
       console.log("🔍 Variáveis:", { baseId, tabela, apiKey });
+      console.log("📦 Dados recebidos:", { cnpj, token });
 
       if (!baseId || !tabela || !apiKey) {
         console.error("❌ Variável de ambiente ausente.");
@@ -24,6 +25,8 @@ export default async function handler(req, res) {
 
       const formula = `AND({cnpj}="${cnpj}", {token}="${token}", {ativo}=1)`;
       const url = `https://api.airtable.com/v0/${baseId}/${tabela}?filterByFormula=${encodeURIComponent(formula)}`;
+
+      console.log("🌐 URL da API:", url);
 
       const resposta = await fetch(url, {
         headers: { Authorization: `Bearer ${apiKey}` }
