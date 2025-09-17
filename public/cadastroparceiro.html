@@ -218,10 +218,20 @@ const resp = await fetch('https://airtable-api-jade.vercel.app/api/parceiros', {
 });
 
 if (!resp.ok) {
-  alert("Erro ao cadastrar parceiro.");
+  const erro = await resp.text();
+  console.error("Erro detalhado:", erro);
+  alert("Erro ao cadastrar parceiro: " + erro);
+  return;
+}
+const resposta = await fetch("/api/parceiros", {...});
+const resultado = await resposta.json();
+
+if (!resposta.ok) {
+  alert("Erro: " + resultado.error);
   return;
 }
 
+alert(resultado.mensagem);
 
 
 // Após confirmação do cadastro
