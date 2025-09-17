@@ -4,11 +4,10 @@ export default async function handler(req, res) {
 
   // Se for POST, pega do body
   if (req.method === 'POST') {
-    const body = await req.json();
-    cnpj = body.cnpj;
-    token = body.token;
-    tipo = body.tipo || tipo;
-  }
+  cnpj = req.body.cnpj;
+  token = req.body.token;
+  tipo = req.body.tipo || tipo;
+}
 
 if (tipo === 'parceirosLogin') {
   try {
