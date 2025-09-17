@@ -143,6 +143,59 @@ body, html {
 .invalido { background:#ffe6e6; border:2px solid #d10000; }
 body, input, button, textarea {
   font-size: 18px;
+#formSugestaoWrapper {
+  margin-top: 20px;
+}
+#formSugestao textarea {
+  width: 100%;
+  min-height: 80px;
+  margin-bottom: 10px;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+#formSugestao button {
+  background-color: var(--verde);
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+}
+.action-buttons {
+  display: flex;
+  flex-wrap: wrap;         /* Quebra linha se não couber */
+  justify-content: center; /* Centraliza tudo */
+  gap: 10px;               /* Espaço entre os botões */
+  margin-top: 15px;
+}
+
+.action-buttons button,
+.action-buttons a {
+  flex: 1 1 auto;          /* Faz os botões crescerem proporcionalmente */
+  min-width: 150px;        /* Largura mínima para não cortar texto */
+  text-align: center;
+}
+#formSugestaoWrapper {
+  margin-top: 20px;
+}
+#formSugestao textarea {
+  width: 100%;
+  min-height: 80px;
+  margin-bottom: 10px;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+#formSugestao button {
+  background-color: var(--verde);
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
 }
 
   </style>
@@ -155,31 +208,32 @@ body, input, button, textarea {
   </div>
 
   <div class="wrap">
-    <div class="card">
-      <h2 id="boasVindasTitulo">Bem-vindo!</h2>
-      <p class="muted">Obrigado por ser nosso PARCEIRO, você está conectado ao seu painel.</p>
+<div class="card">
+  <h2 id="boasVindasTitulo">Bem-vindo!</h2>
+  <p class="muted">Obrigado por ser nosso PARCEIRO, você está conectado ao seu painel.</p>
 
-      <div id="formulario">
-        <h3>Validação de Cliente</h3>
-        <p class="muted">Insira o CPF ou ID Público do cliente para validar:</p>
-        <input type="text" id="cpfOuId" placeholder="Digite o CPF ou ID do cliente">
-        <div id="resultadoValidacao"></div>
-
-      </div>
-
-      <div id="botoes" class="action-buttons">
-        <button class="verde" onclick="consultarCliente()">🔍 Validar Cliente</button>
-        <button class="azul" onclick="irParaConsultas()">📘 Consultas Recentes</button>
-        <a class="btn amarelo" href="criarpromocao.html" target="_blank">🎉 Criar Promoção</a>
-        <button class="btn vermelho" onclick="logout()">Sair</button>
-        <button class="rosa">💡 Enviar Sugestão</button>
-      </div>
-    </div>
+  <div id="formulario">
+    <h3>Validação de Cliente</h3>
+    <p class="muted">Insira o CPF ou ID Público do cliente para validar:</p>
+    <input type="text" id="cpfOuId" placeholder="Digite o CPF ou ID do cliente">
+    <div id="resultadoValidacao"></div>
   </div>
-<form id="formSugestao">
-<textarea id="sugestaoTexto" placeholder="Digite sua sugestão..."></textarea>
-<button type="submit">Enviar Sugestão</button>
-</form>
+
+  <div id="botoes" class="action-buttons">
+    <button class="verde" onclick="consultarCliente()">🔍 Validar Cliente</button>
+    <button class="azul" onclick="irParaConsultas()">📘 Consultas Recentes</button>
+    <a class="btn amarelo" href="criarpromocao.html" target="_blank">🎉 Criar Promoção</a>
+    <button class="btn vermelho" onclick="logout()">Sair</button>
+    
+  </div>
+
+  <div id="formSugestaoWrapper">
+    <form id="formSugestao">
+      <textarea id="sugestaoTexto" placeholder="Digite sua sugestão..."></textarea>
+      <button type="submit">Enviar Sugestão</button>
+    </form>
+  </div>
+</div>
 
 <script>
 
@@ -302,11 +356,8 @@ const parceiros = await response.json();
 const params = new URLSearchParams(location.search);
 const id = params.get("id"); // Ex: PARC-12345
 
-const response = await fetch("/api/consulta?tipo=parceiros");
-const parceiros = await response.json();
-
 const parceiro = parceiros.find(p => p.idPublico?.toUpperCase() === id?.toUpperCase());
-<script>
+
 (async () => {
   const params = new URLSearchParams(window.location.search);
   const id = params.get("id");
@@ -327,13 +378,6 @@ const parceiro = parceiros.find(p => p.idPublico?.toUpperCase() === id?.toUpperC
 })();
 </script>
 
-
 <button id="voltar-fixo" onclick="window.history.back()">⬅️ Voltar</button>
 </body>
 </html>
-
-
-
-
-
-
