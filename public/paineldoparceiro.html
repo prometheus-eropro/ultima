@@ -236,84 +236,81 @@ body, input, button, textarea {
 </div>
 
 <script>
-
 const nome = sessionStorage.getItem("nomeParceiro");
 const cnpj = sessionStorage.getItem("cnpjParceiro");
 
+// Se não tiver dados do parceiro na sessão, volta pro login
 if (!nome || !cnpj) {
   window.location.href = "areadoparceiro.html";
 }
 
+// Mostra o nome do parceiro no título
+document.getElementById("boasVindasTitulo").innerText =
+  `Bem-vindo, ${nome?.toUpperCase() || 'Parceiro'}!`;
 
-    document.getElementById("boasVindasTitulo").innerText =
-      `Bem-vindo, ${sessionStorage.getItem('nomeParceiro')?.toUpperCase() || 'Parceiro'}!`;
-
+// 🔍 Função para validar cliente
 async function consultarCliente() {
   const valor = document.getElementById('cpfOuId').value.trim();
   const box = document.getElementById('resultadoValidacao');
-  if (!valor){ box.className='invalido'; box.innerHTML='⚠️ Informe o CPF ou ID.'; return; }
+
+  if (!valor) {
+    box.className = 'invalido';
+    box.innerHTML = '⚠️ Informe o CPF ou ID.';
+    return;
+  }
 
   try {
-    // 1) Valida cliente
-fetch('/api/gateway?tabela=parceiros')
-
-fetch('/api/gateway?tabela=clientes')
-
-fetch('/api/gateway?tabela=promocoes')
-
-
-, {
-      method:"POST",
-      headers:{ "Content-Type":"application/json" },
-      body: JSON.stringify({ cpfOuId: valor })
+    const r = await fetch("/api/consulta", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ tipo: "validarCliente", cpf: valor })
     });
+
     const data = await r.json();
-    if (!r.ok || !data?.cliente){ throw new Error("nao_encontrado"); }
+    if (!r.ok || !data?.cliente) throw new Error("nao_encontrado");
 
     const f = data.cliente;
     const nome = f.nome || 'Desconhecido';
     const idPublico = f.idPublico || valor;
-    const status = (f.ativo||"").toLowerCase()==="sim" ? "ativo" : "inativo";
-    const cpfLimpo = (f.cpf||"").replace(/\D/g,"");
-    const cpfMask = cpfLimpo ? `${cpfLimpo.slice(0,3)}.***.***-${cpfLimpo.slice(-2)}` : '***.***.***-**';
+    const status = (f.ativo || "").toLowerCase() === "sim" ? "ativo" : "inativo";
+    const cpfLimpo = (f.cpf || "").replace(/\D/g, "");
+    const cpfMask = cpfLimpo ? `${cpfLimpo.slice(0,3)}.***.***-${cpfLimpo.slice(-2)}` : valor;
     const agora = new Date().toLocaleString('pt-BR');
 
-    if (status==='ativo'){
+    if (status === 'ativo') {
       const codigo = gerarCodigoAutorizacao();
-      box.className='validado';
+      box.className = 'validado';
       box.innerHTML = `✅ <strong>${nome}</strong><br>ID: ${idPublico}<br>CPF: ${cpfMask}<br>Data/Hora: ${agora}<br><strong>Código: ${codigo}</strong>`;
-      // 2) Log no backend
-      await fetch("/api/logvalidacao",{
-        method:"POST",
-        headers:{ "Content-Type":"application/json" },
-        body: JSON.stringify({ statusCliente:'ativo', nomeCliente:nome, codigoAutorizacao:codigo, idPublico })
+      
+      // loga a validação
+      await fetch("/api/logvalidacao", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ statusCliente: 'ativo', nomeCliente: nome, codigoAutorizacao: codigo, idPublico })
       });
     } else {
-      box.className='invalido';
+      box.className = 'invalido';
       box.innerHTML = `❌ Cliente <strong>${nome}</strong> está inativo.<br>ID: ${idPublico}<br>CPF: ${cpfMask}<br>Data/Hora: ${agora}`;
-      await fetch("/api/logvalidacao",{
-        method:"POST",
-        headers:{ "Content-Type":"application/json" },
-        body: JSON.stringify({ statusCliente:'inativo', nomeCliente:nome, codigoAutorizacao:'---', idPublico })
+      
+      await fetch("/api/logvalidacao", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ statusCliente: 'inativo', nomeCliente: nome, codigoAutorizacao: '---', idPublico })
       });
     }
-  } catch(e){
-    box.className='invalido';
+  } catch (e) {
+    box.className = 'invalido';
     box.innerHTML = '❌ Cliente inválido ou não cadastrado.';
-    await fetch("/api/logvalidacao",{
-      method:"POST",
-      headers:{ "Content-Type":"application/json" },
-      body: JSON.stringify({ statusCliente:'erro', nomeCliente:'Desconhecido', codigoAutorizacao:'---', idPublico: valor, log_erros:'NAO_ENCONTRADO' })
+    
+    await fetch("/api/logvalidacao", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ statusCliente: 'erro', nomeCliente: 'Desconhecido', codigoAutorizacao: '---', idPublico: valor, log_erros: 'NAO_ENCONTRADO' })
     });
   }
 }
 
-function getParceiro() {
-  return {
-    nome: sessionStorage.getItem('nomeParceiro') || 'Desconhecido',
-    cnpj: sessionStorage.getItem('cnpjParceiro') || ''
-  };
-}
+// 🔑 Gera código de autorização
 function gerarCodigoAutorizacao() {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
   let codigo = 'ERO';
@@ -323,59 +320,29 @@ function gerarCodigoAutorizacao() {
   return codigo;
 }
 
+// 📘 Ir para página de consultas
 function irParaConsultas() {
-  const cnpj = sessionStorage.getItem('cnpjParceiro'); // <-- CORRIGIDO
-  if (cnpj) {
+  if (sessionStorage.getItem('cnpjParceiro')) {
     window.location.href = "consultas.html";
   } else {
     alert('CNPJ não encontrado. Faça login novamente.');
   }
 }
 
+// 💬 Enviar sugestão por WhatsApp
 document.getElementById("formSugestao").addEventListener("submit", function(e) {
-e.preventDefault();
-const msg = encodeURIComponent(document.getElementById("sugestaoTexto").value);
-const numero = "5528999692303";
-const urlZap = `https://api.whatsapp.com/send?phone=${numero}&text=Nova sugestão recebida: %0A%0A${msg}`;
-window.open(urlZap, "_blank");
+  e.preventDefault();
+  const msg = encodeURIComponent(document.getElementById("sugestaoTexto").value);
+  const numero = "5528999692303";
+  const urlZap = `https://api.whatsapp.com/send?phone=${numero}&text=Nova sugestão recebida:%0A%0A${msg}`;
+  window.open(urlZap, "_blank");
 });
 
-
+// 🚪 Logout
 function logout() {
   sessionStorage.clear();
   window.location.href = "areadoparceiro.html";
 }
-function enviarSugestao() {
-  const whatsapp = sessionStorage.getItem("whatsapp") || "";
-  const msg = `Olá! Gostaria de enviar uma sugestão sobre o painel.`;
-  const link = `https://wa.me/${whatsapp}?text=${encodeURIComponent(msg)}`;
-  window.open(link, "_blank");
-}
-const response = await fetch("/api/consulta?tipo=parceiros");
-const parceiros = await response.json();
-const params = new URLSearchParams(location.search);
-const id = params.get("id"); // Ex: PARC-12345
-
-const parceiro = parceiros.find(p => p.idPublico?.toUpperCase() === id?.toUpperCase());
-
-(async () => {
-  const params = new URLSearchParams(window.location.search);
-  const id = params.get("id");
-  if (!id) return;
-
-  const res = await fetch("/api/consulta?tipo=parceiros");
-  if (!res.ok) return;
-  const parceiros = await res.json();
-
-  const parceiro = parceiros.find(p => (p.idPublico || "").toUpperCase() === id.toUpperCase());
-  if (!parceiro) return;
-
-  // preenche os dados no HTML
-  document.getElementById("nome").textContent = parceiro.nome || "";
-  document.getElementById("ramo").textContent = parceiro.segmento || "";
-  document.getElementById("idPublico").textContent = parceiro.idPublico || "";
-  document.getElementById("cidade").textContent = parceiro.cidade || "";
-})();
 </script>
 
 <button id="voltar-fixo" onclick="window.history.back()">⬅️ Voltar</button>
