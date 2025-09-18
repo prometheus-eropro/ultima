@@ -1,39 +1,51 @@
-const Airtable = require('airtable');
-const base = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY }).base(process.env.AIRTABLE_BASE_ID);
+import Airtable from "airtable";
 
 export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Método não permitido' });
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Método não permitido" });
   }
 
-  const { documento } = req.body;
-
   try {
-    const records = await base('clientes')
+    const { documento } = req.body;
+
+    if (!documento) {
+      return res.status(400).json({ error: "Documento não informado" });
+    }
+
+    // Conecta no Airtable
+    const base = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY }).base(process.env.AIRTABLE_BASE_ID);
+
+    // Busca na tabela clientes
+    const records = await base("clientes")
       .select({
-        filterByFormula: `OR({cpf} = "${documento}", {idPublico} = "${documento}")`
+        filterByFormula: `OR({cpf} = "${documento}", {idPublico} = "${documento}")`,
+        maxRecords: 1,
       })
       .firstPage();
 
     if (records.length === 0) {
-      return res.status(404).json({ sucesso: false, mensagem: 'Cliente não encontrado' });
+      return res.status(404).json({ error: "Cliente não encontrado" });
     }
 
     const cliente = records[0].fields;
 
-    res.status(200).json({
-      sucesso: true,
-      cliente: {
-        nome: cliente.nome,
-        cpf: cliente.cpf,
-        idPublico: cliente.idPublico,
-        grupo: cliente.grupo,
-        celular: cliente.celular,
-      }
-    });
+    // Salvar no log
+    await base("log").create([
+      {
+        fields: {
+          dataHora: new Date().toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" }),
+          Status: "ativo",
+          NomeCliente: cliente.nome || "Desconhecido",
+          IdPublico: cliente.idPublico || "",
+          cnpj: process.env.CNPJ_PARCEIRO || "",
+          origemConsulta: "parceiro-web",
+        },
+      },
+    ]);
 
+    return res.status(200).json({ success: true, cliente });
   } catch (error) {
-    console.error('Erro consulta Airtable:', error);
-    res.status(500).json({ sucesso: false, mensagem: 'Erro na API de consulta', detalhe: error.message });
+    console.error("Erro API:", error);
+    return res.status(500).json({ error: "Erro interno do servidor" });
   }
 }
