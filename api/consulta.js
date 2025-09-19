@@ -58,14 +58,15 @@ export default async function handler(req, res) {
 // Exemplo de como pegar os dados corretamente
 const parceiro = data.records[0].fields;
 
-const cnpj = parceiro["cnpj"] || "";
-const nome = parceiro["nome"] || "";
-const cidade = parceiro["cidade"] || "";
-const ramo = parceiro["ramo"] || "";
-const desconto = parceiro["desconto"] || "";
-const beneficios = parceiro["beneficios"] || "";
-const token = parceiro["token"] || "";
-const ativo = parceiro["ativo"] || false;
+// Ajustando para os nomes REAIS do Airtable
+const cnpj = parceiro["A cnpj"] || "";
+const nome = parceiro["A nome"] || "";
+const cidade = parceiro["A cidade"] || "";
+const ramo = parceiro["A ramo"] || "";
+const desconto = parceiro["A desconto"] || "";
+const beneficios = parceiro["A beneficios"] || "";
+const token = parceiro["A token"] || "";
+const ativo = parceiro["A ativo"] || false;
       };
 
       return res.status(200).json({ success: true, parceiro });
