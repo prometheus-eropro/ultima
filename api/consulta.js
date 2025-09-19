@@ -1,78 +1,36 @@
 export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Método não permitido" });
+  if (req.method === "GET") {
+    const { cnpj, token } = req.query;
+    return await processarConsulta(cnpj, token, res);
   }
 
-  const { cnpj, token, documento, tipo } = req.body;
+  if (req.method === "POST") {
+    const { cnpj, token } = req.body;
+    return await processarConsulta(cnpj, token, res);
+  }
 
+  return res.status(405).json({ error: "Método não permitido" });
+}
+
+async function processarConsulta(cnpj, token, res) {
   try {
-    const apiKey = process.env.AIRTABLE_API_KEY;
-    const baseId = process.env.AIRTABLE_BASE_ID;
+    const url = `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/parceiros?filterByFormula=AND({A cnpj}="${cnpj}", {token}="${token}")`;
 
-    if (!apiKey || !baseId) {
-      return res.status(500).json({ error: "Configuração do servidor incompleta" });
+    const airtableRes = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${process.env.AIRTABLE_API_KEY}`,
+      },
+    });
+
+    const data = await airtableRes.json();
+
+    if (!data.records || data.records.length === 0) {
+      return res.status(404).json({ error: "Parceiro não encontrado" });
     }
 
-    // --- Login do parceiro ---
-    if (tipo === "parceirosLogin") {
-      if (!cnpj) {
-        return res.status(400).json({ error: "CNPJ é obrigatório" });
-      }
-
-      // se quiser validar também token, precisa ter a coluna "token" criada no Airtable
-      const filter = token
-        ? `AND({cnpj}='${cnpj}', {token}='${token}')`
-        : `{A cnpj}='${cnpj}'`;
-
-      const url = `https://api.airtable.com/v0/${baseId}/parceiros?filterByFormula=${encodeURIComponent(filter)}`;
-
-      const airtableRes = await fetch(url, {
-        headers: { Authorization: `Bearer ${apiKey}` },
-      });
-
-      const data = await airtableRes.json();
-
-      if (!data.records || data.records.length === 0) {
-        return res.status(404).json({ error: "Parceiro não encontrado ou token inválido" });
-      }
-
-      const parceiro = data.records[0].fields;
-
-      return res.status(200).json({
-        success: true,
-        parceiro: {
-          id: data.records[0].id,
-          nome: parceiro["nome"] || "",
-          cnpj: parceiro["cnpj"] || "",
-          cidade: parceiro["cidade"] || "",
-          ramo: parceiro["ramo"] || "",
-          beneficios: parceiro["beneficios"] || "",
-          desconto: parceiro["desconto"] || "",
-        },
-      });
-    }
-
-    // --- Consulta de cliente ---
-    if (documento) {
-      const filter = `OR({cpf} = '${documento}', {idPublico} = '${documento}')`;
-      const url = `https://api.airtable.com/v0/${baseId}/clientes?filterByFormula=${encodeURIComponent(filter)}`;
-
-      const airtableRes = await fetch(url, {
-        headers: { Authorization: `Bearer ${apiKey}` },
-      });
-
-      const data = await airtableRes.json();
-
-      if (!data.records || data.records.length === 0) {
-        return res.status(404).json({ error: "Cliente não encontrado" });
-      }
-
-      return res.status(200).json({ success: true, cliente: data.records[0].fields });
-    }
-
-    return res.status(400).json({ error: "Requisição inválida" });
+    return res.status(200).json(data.records[0].fields);
   } catch (err) {
-    console.error("Erro em /consulta:", err);
-    return res.status(500).json({ error: "Erro interno do servidor" });
+    console.error("Erro ao consultar parceiro:", err);
+    return res.status(500).json({ error: "Erro no servidor" });
   }
 }
