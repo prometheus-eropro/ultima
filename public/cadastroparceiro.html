@@ -103,17 +103,26 @@ body, html {
     }
 
 <style>
-  #botao-voltar {
-    position: fixed;
-    bottom: 20px;
-    left: 20px;
-    background-color: #005e20;
-    color: white;
-    border: none;
-    padding: 6px 12px;
-    border-radius: 4px;
-    font-size: 14px;
-    z-index: 1000;
+#voltar-fixo {
+  position: fixed;      /* fixa na tela */
+  bottom: 15px;         /* distância do rodapé */
+  left: 15px;           /* distância da lateral */
+  padding: 10px 20px;    /* tamanho compacto */
+  font-size: 13px;      /* texto menor */
+  background-color: #0a7f2e;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  z-index: 999;
+  width: auto !important;   /* força a largura mínima */
+  display: inline-block;    /* impede de ocupar linha toda */
+}
+#voltar-fixo {
+  width: auto !important;
+  display: inline-block;
+}
   }
 </style>
   </style>
