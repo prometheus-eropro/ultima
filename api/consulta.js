@@ -19,9 +19,9 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: "CNPJ é obrigatório" });
       }
 
-      // se quiser validar também token, precisa ter a coluna "A token" criada no Airtable
+      // se quiser validar também token, precisa ter a coluna "token" criada no Airtable
       const filter = token
-        ? `AND({A cnpj}='${cnpj}', {A token}='${token}')`
+        ? `AND({cnpj}='${cnpj}', {token}='${token}')`
         : `{A cnpj}='${cnpj}'`;
 
       const url = `https://api.airtable.com/v0/${baseId}/parceiros?filterByFormula=${encodeURIComponent(filter)}`;
@@ -42,12 +42,12 @@ export default async function handler(req, res) {
         success: true,
         parceiro: {
           id: data.records[0].id,
-          nome: parceiro["A nome"] || "",
-          cnpj: parceiro["A cnpj"] || "",
-          cidade: parceiro["A cidade"] || "",
-          ramo: parceiro["A ramo"] || "",
-          beneficios: parceiro["A beneficios"] || "",
-          desconto: parceiro["A desconto"] || "",
+          nome: parceiro["nome"] || "",
+          cnpj: parceiro["cnpj"] || "",
+          cidade: parceiro["cidade"] || "",
+          ramo: parceiro["ramo"] || "",
+          beneficios: parceiro["beneficios"] || "",
+          desconto: parceiro["desconto"] || "",
         },
       });
     }
