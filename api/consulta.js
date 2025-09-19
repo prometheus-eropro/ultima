@@ -37,7 +37,7 @@ export default async function handler(req, res) {
       const safeToken = escapeAirtableString(token);
 
       // ⚠️ use exatamente os nomes das colunas que estão no Airtable
-      const filter = `AND({A cnpj} = "${safeCnpj}", {token} = "${safeToken}")`;
+      const filter = `AND({A cnpj} = "${safeCnpj}", {A token} = "${safeToken}")`;
 
       const records = await base("parceiros")
         .select({ filterByFormula: filter, maxRecords: 1 })
