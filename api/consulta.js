@@ -55,14 +55,17 @@ export default async function handler(req, res) {
       //   return res.status(423).json({ error: "Parceiro inativo" });
       // }
 
-      const parceiro = {
-        id: records[0].id,
-        nome: record["A nome"] || "",
-        cidade: record["A cidade"] || "",
-        ramo: record["A ramo"] || "",
-        beneficios: record["A beneficios"] || "",
-        desconto: record["desconto"] || "",
-        cnpj: record["A cnpj"] || "",
+// Exemplo de como pegar os dados corretamente
+const parceiro = data.records[0].fields;
+
+const cnpj = parceiro["cnpj"] || "";
+const nome = parceiro["nome"] || "";
+const cidade = parceiro["cidade"] || "";
+const ramo = parceiro["ramo"] || "";
+const desconto = parceiro["desconto"] || "";
+const beneficios = parceiro["beneficios"] || "";
+const token = parceiro["token"] || "";
+const ativo = parceiro["ativo"] || false;
       };
 
       return res.status(200).json({ success: true, parceiro });
