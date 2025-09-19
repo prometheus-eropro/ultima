@@ -11,9 +11,10 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: "Todos os campos obrigatórios devem ser preenchidos" });
   }
 
-  const baseId = process.env.AIRTABLE_BASE_ID;
-  const tabela = process.env.AIRTABLE_PARCEIROS;
   const apiKey = process.env.AIRTABLE_API_KEY;
+const baseId = process.env.AIRTABLE_BASE_ID;
+const tableName = process.env.AIRTABLE_PARCEIROS;
+
 
   const checkUrl = `https://api.airtable.com/v0/${baseId}/${tabela}?filterByFormula={cnpj}='${cnpj}'`;
 

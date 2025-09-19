@@ -102,20 +102,20 @@ body, html {
       margin-top: 30px;
     }
 
-#voltar-fixo {
-  position: fixed;
-  bottom: 20px;
-  left: 20px;
-  padding: 12px 24px;
-  font-size: 16px;
-  background-color: #0a7f2e;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  box-shadow: 0 3px 8px rgba(0,0,0,0.3);
-  z-index: 999;
-}
+<style>
+  #botao-voltar {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    background-color: #005e20;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 14px;
+    z-index: 1000;
+  }
+</style>
   </style>
 </head>
 <body>
@@ -270,7 +270,8 @@ Deseja liberar este parceiro?`;
   });
 </script>
 
-<button id="voltar-fixo" onclick="window.history.back()">⬅️ Voltar</button>
+<button id="botao-voltar" onclick="window.history.back()">← Voltar</button>
+
 
 </body>
 </html>
