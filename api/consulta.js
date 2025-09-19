@@ -71,7 +71,7 @@ export default async function handler(req, res) {
       const cliente = {
         id: records[0].id,
         nome: record.nome || record.Name || record.Nome || "",
-        cnpj: record.cnpj || "",
+        cpf: record.cpf || "",
         whatsapp: record.whatsapp || "",
         instagram: record.instagram || "",
         idPublico: record.idPublico || "",

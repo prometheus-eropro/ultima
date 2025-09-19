@@ -211,7 +211,8 @@ if (data.whatsapp.length < 8) {
 }
 
     try {
-const resp = await fetch('https://airtable-api-jade.vercel.app/api/parceiros', {
+const resp = await fetch('/api/parceiros', {
+
   method: "POST",
   headers: { "Content-Type": "application/json" },
   body: JSON.stringify(data)

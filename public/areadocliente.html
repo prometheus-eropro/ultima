@@ -168,13 +168,30 @@ body, html {
     }
 
     try {
-      const resposta = await fetch(`/api/clientes?idPublico=${encodeURIComponent(valor)}`);
+const resposta = await fetch(`/api/consulta`, {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ documento: valor })   // valor = CPF ou idPublico digitado
+});
 
-if (!resposta.ok) {
-  throw new Error("Falha na API");
-}
 const dados = await resposta.json();
 
+if (resposta.ok && dados.cliente) {
+  const cliente = dados.cliente;
+
+  // exemplo de uso:
+  console.log("Nome:", cliente.nome);
+  console.log("WhatsApp:", cliente.whatsapp);
+
+  // aqui você pode popular o HTML com os dados do cliente
+  document.getElementById("resultado").textContent =
+    JSON.stringify(cliente, null, 2);
+
+} else {
+  console.error("Erro:", dados.error || "Não encontrado");
+  document.getElementById("resultado").textContent =
+    `Erro: ${dados.error || "Cliente não encontrado"}`;
+}
 
 const cliente = dados[0]; // agora a API já devolve um array de objetos simples
 
